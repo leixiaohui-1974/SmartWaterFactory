@@ -28,87 +28,40 @@ The core parameters for the simulation and PID controllers are stored in `config
 
 ## Installation
 
-Currently, the project has no external dependencies. You can clone the repository and run the tests directly.
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd <repository-name>
+    ```
 
-```bash
-git clone <repository-url>
-cd <repository-name>
-```
+2.  **Install dependencies:**
+    This project requires `matplotlib` for visualization. Install it using the provided `requirements.txt` file:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 ## Usage
 
-### Running Tests
+This project includes scripts to run the simulation, log the results, and visualize the output.
 
+### 1. Running the Simulation
+To run the simulation and generate a `simulation_log.csv` file, execute the following command from the root directory:
+```bash
+python3 run_simulation.py
+```
+This will run a default simulation of 300 steps.
+
+### 2. Visualizing the Results
+After running the simulation, you can generate a plot of the results:
+```bash
+python3 visualize_log.py
+```
+This script reads `simulation_log.csv` and saves the output as `simulation_plot.png`.
+
+### 3. Running Tests
 To verify that the system is working correctly, you can run all the tests from the root directory:
-
 ```bash
 python3 -m unittest discover tests
-```
-This command will automatically find and run all tests in the `tests` directory.
-
-### Example: Running a Simulation
-
-Here is a basic example of how to set up and run a closed-loop simulation, similar to the integration test. You can save this code as `example.py` in the root directory and run it with `python3 example.py`.
-
-```python
-from datetime import datetime
-from water_plant_controller.models.water_quality import WaterQuality
-from water_plant_controller.simulation.plant_simulator import PlantSimulator
-from water_plant_controller.control.pid_controller import PIDController
-from config.settings import PID_GAINS
-
-# 1. Define initial conditions and setpoints
-initial_quality = WaterQuality(
-    timestamp=datetime.now(),
-    ph=7.0,
-    turbidity=25.0,
-    dissolved_oxygen=4.0
-)
-turbidity_setpoint = 5.0
-do_setpoint = 8.5
-
-# 2. Initialize the simulator
-# The simulator now loads default parameters from config/settings.py
-simulator = PlantSimulator(initial_quality)
-
-# 3. Create and configure controllers
-# Load gains from the centralized configuration file
-dosing_gains = PID_GAINS["dosing_controller"]
-aeration_gains = PID_GAINS["aeration_controller"]
-
-# Use reverse_acting=True for turbidity control
-dosing_controller = PIDController(
-    Kp=dosing_gains["Kp"], Ki=dosing_gains["Ki"], Kd=dosing_gains["Kd"],
-    setpoint=turbidity_setpoint,
-    reverse_acting=True
-)
-dosing_controller.set_output_limits(0, 10)
-dosing_controller.set_integral_limits(-5, 5) # Set integral limits for anti-windup
-
-# Use direct-acting (default) for DO control
-aeration_controller = PIDController(
-    Kp=aeration_gains["Kp"], Ki=aeration_gains["Ki"], Kd=aeration_gains["Kd"],
-    setpoint=do_setpoint
-)
-aeration_controller.set_output_limits(0, 20)
-aeration_controller.set_integral_limits(-10, 10) # Set integral limits for anti-windup
-
-
-# 4. Run the simulation loop
-print(f"Initial State: Turbidity={simulator.current_quality.turbidity:.2f}, DO={simulator.current_quality.dissolved_oxygen:.2f}")
-
-for i in range(150):
-    current_quality = simulator.current_quality
-
-    coagulant_dose = dosing_controller.calculate(current_quality.turbidity)
-    aeration_rate = aeration_controller.calculate(current_quality.dissolved_oxygen)
-
-    simulator.step(coagulant_dose=coagulant_dose, aeration_rate=aeration_rate)
-
-    if (i + 1) % 15 == 0:
-        print(f"Step {i+1:3}: Turbidity={simulator.current_quality.turbidity:.2f}, DO={simulator.current_quality.dissolved_oxygen:.2f}")
-
-print(f"Final State:   Turbidity={simulator.current_quality.turbidity:.2f}, DO={simulator.current_quality.dissolved_oxygen:.2f}")
 ```
 
 ## Key Components
