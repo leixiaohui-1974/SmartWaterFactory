@@ -19,8 +19,12 @@ The repository is organized as follows:
   - `test_pid_controller.py`: Unit tests for the PID controller.
   - `test_plant_simulator.py`: Unit tests for the simulator.
   - `test_integration.py`: Integration test for the closed-loop system.
-- `config/`: (Placeholder) For configuration files.
+- `config/`: Contains configuration files, such as `settings.py` for simulation and controller parameters.
 - `data/`: (Placeholder) For simulation data.
+
+## Configuration
+
+The core parameters for the simulation and PID controllers are stored in `config/settings.py`. You can modify this file to tune the system's behavior without changing the source code.
 
 ## Installation
 
@@ -51,6 +55,7 @@ from datetime import datetime
 from water_plant_controller.models.water_quality import WaterQuality
 from water_plant_controller.simulation.plant_simulator import PlantSimulator
 from water_plant_controller.control.pid_controller import PIDController
+from config.settings import PID_GAINS
 
 # 1. Define initial conditions and setpoints
 initial_quality = WaterQuality(
@@ -63,16 +68,31 @@ turbidity_setpoint = 5.0
 do_setpoint = 8.5
 
 # 2. Initialize the simulator
+# The simulator now loads default parameters from config/settings.py
 simulator = PlantSimulator(initial_quality)
 
 # 3. Create and configure controllers
+# Load gains from the centralized configuration file
+dosing_gains = PID_GAINS["dosing_controller"]
+aeration_gains = PID_GAINS["aeration_controller"]
+
 # Use reverse_acting=True for turbidity control
-dosing_controller = PIDController(Kp=0.1, Ki=0.01, Kd=0.1, setpoint=turbidity_setpoint, reverse_acting=True)
+dosing_controller = PIDController(
+    Kp=dosing_gains["Kp"], Ki=dosing_gains["Ki"], Kd=dosing_gains["Kd"],
+    setpoint=turbidity_setpoint,
+    reverse_acting=True
+)
 dosing_controller.set_output_limits(0, 10)
+dosing_controller.set_integral_limits(-5, 5) # Set integral limits for anti-windup
 
 # Use direct-acting (default) for DO control
-aeration_controller = PIDController(Kp=0.8, Ki=0.1, Kd=0.1, setpoint=do_setpoint)
+aeration_controller = PIDController(
+    Kp=aeration_gains["Kp"], Ki=aeration_gains["Ki"], Kd=aeration_gains["Kd"],
+    setpoint=do_setpoint
+)
 aeration_controller.set_output_limits(0, 20)
+aeration_controller.set_integral_limits(-10, 10) # Set integral limits for anti-windup
+
 
 # 4. Run the simulation loop
 print(f"Initial State: Turbidity={simulator.current_quality.turbidity:.2f}, DO={simulator.current_quality.dissolved_oxygen:.2f}")

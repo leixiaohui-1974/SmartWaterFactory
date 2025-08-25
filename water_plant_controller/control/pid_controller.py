@@ -27,6 +27,8 @@ class PIDController:
         # Default output limits can be changed via set_output_limits
         self.output_min = 0.0
         self.output_max = float('inf')
+        self.integral_min = -float('inf')
+        self.integral_max = float('inf')
 
     def calculate(self, current_value: float, dt: float = 1.0) -> float:
         """
@@ -45,8 +47,8 @@ class PIDController:
         # Integral term with anti-windup
         self._integral += self.Ki * error * dt
         # Clamp the integral term to prevent windup
-        if self.output_min is not None and self.output_max is not None:
-             self._integral = max(self.output_min, min(self._integral, self.output_max))
+        if self.integral_min is not None and self.integral_max is not None:
+            self._integral = max(self.integral_min, min(self._integral, self.integral_max))
         i_term = self._integral
 
         # Derivative term
@@ -67,6 +69,18 @@ class PIDController:
         self._previous_error = error
 
         return output
+
+    def set_integral_limits(self, min_val: float, max_val: float):
+        """
+        Sets the minimum and maximum limits for the integral term.
+        This is a key part of anti-windup.
+        :param min_val: The minimum value of the integral term.
+        :param max_val: The maximum value of the integral term.
+        """
+        if min_val >= max_val:
+            raise ValueError("min_val must be less than max_val.")
+        self.integral_min = min_val
+        self.integral_max = max_val
 
     def set_output_limits(self, min_val: float, max_val: float):
         """
