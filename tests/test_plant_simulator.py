@@ -40,9 +40,9 @@ class TestPlantSimulator(unittest.TestCase):
         simulator = PlantSimulator(self.initial_quality)
         simulator._do_consumption_rate = 0 # Disable consumption for this part
         initial_do = simulator.current_quality.dissolved_oxygen # 5.0
-        # Saturation is 9.0. Gap is 4.0. Increase is 0.01 * 10 * 4.0 = 0.4
+        # Saturation is 9.0. Gap is 4.0. Increase is 0.05 * 10 * 4.0 = 2.0
         simulator.step(coagulant_dose=0, aeration_rate=10)
-        self.assertAlmostEqual(simulator.current_quality.dissolved_oxygen, 5.4)
+        self.assertAlmostEqual(simulator.current_quality.dissolved_oxygen, 7.0)
 
         # Case 2: Only consumption
         simulator = PlantSimulator(self.initial_quality)
