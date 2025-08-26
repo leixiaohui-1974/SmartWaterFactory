@@ -5,7 +5,8 @@ from water_plant_controller.models.water_quality import WaterQuality
 from water_plant_controller.simulation.plant_simulator import PlantSimulator
 from water_plant_controller.control.pid_controller import PIDController
 from water_plant_controller.control.on_off_controller import OnOffController
-from config.settings import PID_GAINS
+from config.settings import SIMULATION_DEFAULTS, PID_GAINS
+from config.validator import validate_config
 
 def run_and_log_simulation(steps: int, log_file: str, turbidity_setpoint: float, do_setpoint: float, controller_type: str):
     """
@@ -17,6 +18,9 @@ def run_and_log_simulation(steps: int, log_file: str, turbidity_setpoint: float,
     :param do_setpoint: The target dissolved oxygen value.
     :param controller_type: The type of controller to use ('pid' or 'on-off').
     """
+    # 0. Validate Configuration
+    validate_config(SIMULATION_DEFAULTS, PID_GAINS)
+
     # 1. Initialization
     initial_quality = WaterQuality(
         timestamp=datetime(2023, 1, 1, 12, 0, 0),
@@ -54,9 +58,10 @@ def run_and_log_simulation(steps: int, log_file: str, turbidity_setpoint: float,
     aeration_controller.set_output_limits(0, 20)
 
     # 3. Setup CSV Logging
-    with open(log_file, 'w', newline='') as csvfile:
-        fieldnames = [
-            'timestamp', 'turbidity', 'dissolved_oxygen',
+    try:
+        with open(log_file, 'w', newline='') as csvfile:
+            fieldnames = [
+                'timestamp', 'turbidity', 'dissolved_oxygen',
             'turbidity_setpoint', 'do_setpoint',
             'coagulant_dose', 'aeration_rate'
         ]
@@ -86,7 +91,11 @@ def run_and_log_simulation(steps: int, log_file: str, turbidity_setpoint: float,
                 'aeration_rate': aeration_rate
             })
 
-    print("Simulation finished.")
+        print("Simulation finished.")
+
+    except IOError as e:
+        print(f"Error: Could not write to log file '{log_file}'.")
+        print(f"  Reason: {e}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run the Water Plant Simulation.")

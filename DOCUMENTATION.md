@@ -103,15 +103,31 @@ All key parameters are centralized in `config/settings.py`. This allows for easy
 
 ---
 
-## 6. How to Run and Extend the Project
+## 6. Robustness and Error Handling
 
-### 6.1. Running Tests
+To make the project more reliable and user-friendly, several robustness features have been implemented.
+
+### 6.1. Configuration Validation
+Before any simulation is run, the `config/settings.py` file is automatically validated by the `config/validator.py` module. This validator checks for:
+- The presence of all required configuration keys.
+- The correct data type for each parameter (e.g., ensuring `time_delay_steps` is an integer).
+
+If the configuration is invalid, the program will exit with a clear error message indicating the exact problem, preventing unexpected crashes during the simulation.
+
+### 6.2. File I/O Error Handling
+The `run_simulation.py` and `visualize_log.py` scripts include error handling for file operations. If a script is unable to read or write a log file (e.g., due to a non-existent file or incorrect permissions), it will print a user-friendly error message instead of crashing.
+
+---
+
+## 7. How to Run and Extend the Project
+
+### 7.1. Running Tests
 To verify the integrity of the system, run all tests from the root directory:
 ```bash
 python3 -m unittest discover tests
 ```
 
-### 6.2. Running a Simulation with Logging
+### 7.2. Running a Simulation with Logging
 The project includes a dedicated script to run the simulation, log its output to a CSV file, and visualize the results.
 
 **Step 1: Run the Simulation**
@@ -138,7 +154,7 @@ This will read `simulation_log.csv` and create `simulation_plot.png`. You can al
 python3 visualize_log.py --log-file custom_log.csv --output-image custom_plot.png
 ```
 
-### 6.3. Extending the Project
+### 7.3. Extending the Project
 This project is designed to be extensible. Here are some ideas for future improvements:
 - **Advanced Simulation**: Introduce time delays, non-linear effects, or noise to the simulator for more realism.
 - **New Controller Types**: Implement and compare other control strategies, such as an On-Off controller.

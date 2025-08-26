@@ -18,14 +18,28 @@ def visualize_simulation_log(log_file: str, output_image: str):
     do_setpoint = []
 
     # Read data from CSV
-    with open(log_file, 'r') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            timestamps.append(datetime.fromisoformat(row['timestamp']))
-            turbidity.append(float(row['turbidity']))
-            dissolved_oxygen.append(float(row['dissolved_oxygen']))
-            turbidity_setpoint.append(float(row['turbidity_setpoint']))
-            do_setpoint.append(float(row['do_setpoint']))
+    try:
+        with open(log_file, 'r') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                timestamps.append(datetime.fromisoformat(row['timestamp']))
+                turbidity.append(float(row['turbidity']))
+                dissolved_oxygen.append(float(row['dissolved_oxygen']))
+                turbidity_setpoint.append(float(row['turbidity_setpoint']))
+                do_setpoint.append(float(row['do_setpoint']))
+
+    except (IOError, FileNotFoundError) as e:
+        print(f"Error: Could not read log file '{log_file}'.")
+        print(f"  Reason: {e}")
+        return
+    except (ValueError, KeyError) as e:
+        print(f"Error: Could not parse log file '{log_file}'. It may be corrupted or in the wrong format.")
+        print(f"  Reason: {e}")
+        return
+
+    if not timestamps:
+        print(f"Warning: Log file '{log_file}' is empty. No plot generated.")
+        return
 
     # Create plot
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
@@ -50,6 +64,7 @@ def visualize_simulation_log(log_file: str, output_image: str):
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.savefig(output_image)
     print(f"Plot saved to {output_image}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Visualize simulation log data.")
