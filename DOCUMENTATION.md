@@ -82,7 +82,7 @@ Run the simulation with the default PID controller:
 `python3 visualize_log.py --log-file log_pid.csv --output-image plot_pid.png`
 
 The PID controller provides a smooth, stable response. It quickly brings the process variables to their setpoints with minimal overshoot and holds them steady.
-![PID Controller Results](simulation_plot_pid.png)
+![PID Controller Results](docs/images/simulation_plot_pid.png)
 
 **On-Off Controller Performance**
 Run the simulation with the On-Off controller:
@@ -90,7 +90,7 @@ Run the simulation with the On-Off controller:
 `python3 visualize_log.py --log-file log_on_off.csv --output-image plot_on_off.png`
 
 The On-Off controller causes the process variables to oscillate continuously around the setpoint. Because it can only be fully on or fully off, it cannot make fine adjustments, leading to instability and inefficiency.
-![On-Off Controller Results](simulation_plot_on_off.png)
+![On-Off Controller Results](docs/images/simulation_plot_on_off.png)
 
 ---
 
