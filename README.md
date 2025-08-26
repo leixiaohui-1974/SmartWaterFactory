@@ -92,7 +92,7 @@ Each example is self-contained in its own folder and includes a `README.md` file
 A simple dataclass located in `water_plant_controller/models/water_quality.py` that represents the state of water at a point in time.
 
 ### `PlantSimulator`
-Located in `water_plant_controller/simulation/plant_simulator.py`. This class simulates the response of a water body to coagulant dosing and aeration based on a simple physics model.
+Located in `water_plant_controller/simulation/plant_simulator.py`. This class simulates the response of a water body to coagulant dosing and aeration based on a simple physics model. For a detailed explanation of the simulation principles in Chinese, see [SIMULATION_PRINCIPLES_CN.md](./SIMULATION_PRINCIPLES_CN.md).
 
 ### `PIDController`
 A generic PID controller in `water_plant_controller/control/pid_controller.py`. It is reusable and can be configured for both direct-acting (e.g., heating) and reverse-acting (e.g., cooling, turbidity reduction) control loops.
