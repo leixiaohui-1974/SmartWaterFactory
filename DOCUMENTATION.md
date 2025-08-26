@@ -90,14 +90,36 @@ To verify the integrity of the system, run all tests from the root directory:
 python3 -m unittest discover tests
 ```
 
-### 5.2. Running a Simulation
-The example in `README.md` provides a clear template for setting up and running a closed-loop simulation. You can save it as a Python file and run it directly.
+### 5.2. Running a Simulation with Logging
+The project includes a dedicated script to run the simulation, log its output to a CSV file, and visualize the results.
+
+**Step 1: Run the Simulation**
+Execute the `run_simulation.py` script. This will generate a `simulation_log.csv` file containing the time-series data of the run.
+```bash
+python3 run_simulation.py
+```
+You can customize the simulation using command-line arguments. For a full list of options, run:
+```bash
+python3 run_simulation.py --help
+```
+Example of a custom run:
+```bash
+python3 run_simulation.py --steps 500 --turbidity-setpoint 4.5
+```
+
+**Step 2: Visualize the Results**
+After the simulation is complete, run the `visualize_log.py` script to generate a plot from the log file.
+```bash
+python3 visualize_log.py
+```
+This will read `simulation_log.csv` and create `simulation_plot.png`. You can also specify the input and output files:
+```bash
+python3 visualize_log.py --log-file custom_log.csv --output-image custom_plot.png
+```
 
 ### 5.3. Extending the Project
 This project is designed to be extensible. Here are some ideas for future improvements:
-- **Data Logging and Visualization**: Implement logging of simulation data to a file and create scripts to plot the results.
 - **Advanced Simulation**: Introduce time delays, non-linear effects, or noise to the simulator for more realism.
-- **Command-Line Interface (CLI)**: Create a CLI to run simulations with different parameters without editing code.
 - **New Controller Types**: Implement and compare other control strategies, such as an On-Off controller.
 
 ---

@@ -49,14 +49,20 @@ To run the simulation and generate a `simulation_log.csv` file, execute the foll
 ```bash
 python3 run_simulation.py
 ```
-This will run a default simulation of 300 steps.
+This will run a default simulation of 300 steps. You can also customize the simulation with command-line arguments:
+```bash
+python3 run_simulation.py --steps 500 --turbidity-setpoint 4.5 --log-file custom_log.csv
+```
 
 ### 2. Visualizing the Results
 After running the simulation, you can generate a plot of the results:
 ```bash
 python3 visualize_log.py
 ```
-This script reads `simulation_log.csv` and saves the output as `simulation_plot.png`.
+This script reads `simulation_log.csv` and saves the output as `simulation_plot.png`. You can specify different input and output files:
+```bash
+python3 visualize_log.py --log-file custom_log.csv --output-image custom_plot.png
+```
 
 ### 3. Running Tests
 To verify that the system is working correctly, you can run all the tests from the root directory:

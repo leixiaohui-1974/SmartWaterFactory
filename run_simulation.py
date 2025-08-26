@@ -1,16 +1,19 @@
 import csv
+import argparse
 from datetime import datetime
 from water_plant_controller.models.water_quality import WaterQuality
 from water_plant_controller.simulation.plant_simulator import PlantSimulator
 from water_plant_controller.control.pid_controller import PIDController
 from config.settings import PID_GAINS
 
-def run_and_log_simulation(steps: int = 300, log_file: str = 'simulation_log.csv'):
+def run_and_log_simulation(steps: int, log_file: str, turbidity_setpoint: float, do_setpoint: float):
     """
     Runs the water plant simulation and logs the state at each step to a CSV file.
 
     :param steps: The number of simulation steps to run.
     :param log_file: The path to the CSV file where the log will be saved.
+    :param turbidity_setpoint: The target turbidity value.
+    :param do_setpoint: The target dissolved oxygen value.
     """
     # 1. Initialization
     initial_quality = WaterQuality(
@@ -22,9 +25,6 @@ def run_and_log_simulation(steps: int = 300, log_file: str = 'simulation_log.csv
     simulator = PlantSimulator(initial_quality)
 
     # 2. Controller Setup
-    turbidity_setpoint = 5.0
-    do_setpoint = 8.5
-
     dosing_gains = PID_GAINS["dosing_controller"]
     aeration_gains = PID_GAINS["aeration_controller"]
 
@@ -78,4 +78,17 @@ def run_and_log_simulation(steps: int = 300, log_file: str = 'simulation_log.csv
     print("Simulation finished.")
 
 if __name__ == '__main__':
-    run_and_log_simulation()
+    parser = argparse.ArgumentParser(description="Run the Water Plant Simulation.")
+    parser.add_argument('--steps', type=int, default=300, help='Number of simulation steps to run.')
+    parser.add_argument('--log-file', type=str, default='simulation_log.csv', help='Path to the output CSV log file.')
+    parser.add_argument('--turbidity-setpoint', type=float, default=5.0, help='Setpoint for turbidity.')
+    parser.add_argument('--do-setpoint', type=float, default=8.5, help='Setpoint for dissolved oxygen.')
+
+    args = parser.parse_args()
+
+    run_and_log_simulation(
+        steps=args.steps,
+        log_file=args.log_file,
+        turbidity_setpoint=args.turbidity_setpoint,
+        do_setpoint=args.do_setpoint
+    )
