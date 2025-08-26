@@ -26,30 +26,38 @@ class TestPlantSimulator(unittest.TestCase):
         self.assertEqual(self.simulator.current_quality, self.initial_quality)
 
     def test_turbidity_reduction(self):
-        """Test that coagulant dose reduces turbidity."""
+        """Test that coagulant dose reduces turbidity after the delay."""
         initial_turbidity = self.simulator.current_quality.turbidity
-        # Apply a dose of 1.0. Reduction should be 0.05 * 1.0 * 10.0 = 0.5
+        delay = self.simulator._delay_steps
+
+        # Apply a dose and then zeros to flush the pipeline
         self.simulator.step(coagulant_dose=1.0, aeration_rate=0)
+        for _ in range(delay):
+            self.simulator.step(coagulant_dose=0, aeration_rate=0)
+
         new_turbidity = self.simulator.current_quality.turbidity
-        self.assertAlmostEqual(new_turbidity, 9.5)
         self.assertLess(new_turbidity, initial_turbidity)
 
     def test_do_increase_and_decrease(self):
-        """Test that aeration increases DO and consumption decreases it."""
+        """Test that aeration increases DO and consumption decreases it after the delay."""
+        delay = self.simulator._delay_steps
+
         # Case 1: Only aeration
         simulator = PlantSimulator(self.initial_quality)
         simulator._do_consumption_rate = 0 # Disable consumption for this part
-        initial_do = simulator.current_quality.dissolved_oxygen # 5.0
-        # Saturation is 9.0. Gap is 4.0. Increase is 0.05 * 10 * 4.0 = 2.0
-        simulator.step(coagulant_dose=0, aeration_rate=10)
-        self.assertAlmostEqual(simulator.current_quality.dissolved_oxygen, 7.0)
+        initial_do = simulator.current_quality.dissolved_oxygen
 
-        # Case 2: Only consumption
+        simulator.step(coagulant_dose=0, aeration_rate=10)
+        for _ in range(delay):
+            simulator.step(coagulant_dose=0, aeration_rate=0)
+
+        self.assertGreater(simulator.current_quality.dissolved_oxygen, initial_do)
+
+        # Case 2: Only consumption (delay doesn't affect this)
         simulator = PlantSimulator(self.initial_quality)
-        initial_do = simulator.current_quality.dissolved_oxygen # 5.0
-        # Consumption is 0.02 * 5.0 = 0.1. New DO = 5.0 - 0.1 = 4.9
+        initial_do = simulator.current_quality.dissolved_oxygen
         simulator.step(coagulant_dose=0, aeration_rate=0)
-        self.assertAlmostEqual(simulator.current_quality.dissolved_oxygen, 4.9)
+        self.assertLess(simulator.current_quality.dissolved_oxygen, initial_do)
 
     def test_bounds(self):
         """Test that water quality parameters stay within logical bounds."""

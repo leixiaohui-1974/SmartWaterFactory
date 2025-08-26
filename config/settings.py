@@ -8,6 +8,8 @@ SIMULATION_DEFAULTS = {
     "do_consumption_rate": 0.02,    # Natural rate of DO consumption by biomass
     "turbidity_decay_factor": 0.05, # How effectively coagulant reduces turbidity
     "do_increase_rate": 0.05,       # How effectively aeration increases DO
+    "time_delay_steps": 5,          # Number of steps to delay control actions
+    "aeration_non_linearity": 1.5,  # Factor for non-linear aeration efficiency
 }
 
 

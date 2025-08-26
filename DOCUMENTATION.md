@@ -53,9 +53,12 @@ The project is designed with a clear separation of concerns, dividing the system
 - **Key Logic**:
     - **Turbidity Reduction**: The addition of a coagulant reduces turbidity. The rate of reduction is proportional to the current turbidity and the coagulant dose.
     - **Dissolved Oxygen (DO)**: The DO level is affected by two main factors:
-        1.  **Aeration**: Increases DO, pushing it towards a natural saturation point. The rate of increase is proportional to the aeration rate and the current "DO deficit" (`saturation - current_do`).
+        1.  **Aeration**: Increases DO, pushing it towards a natural saturation point.
         2.  **Consumption**: Natural processes consume DO at a constant rate.
-- **Configuration**: The simulator's physical parameters (e.g., `do_increase_rate`, `turbidity_decay_factor`) are loaded from `config/settings.py`.
+- **Advanced Features**:
+    - **Time Delay**: The simulator includes a configurable time delay (`time_delay_steps`) to mimic real-world transport delays in pipes. Control actions are passed through a FIFO (First-In, First-Out) pipeline, so their effect is not immediate.
+    - **Non-Linear Aeration**: To provide a more realistic challenge, the efficiency of aeration is non-linear. As the dissolved oxygen level approaches its saturation point, the effectiveness of aeration decreases. This is controlled by the `aeration_non_linearity` parameter.
+- **Configuration**: The simulator's physical parameters (e.g., `do_increase_rate`, `time_delay_steps`) are loaded from `config/settings.py`.
 
 ### 3.3. `PIDController`
 - **Location**: `water_plant_controller/control/pid_controller.py`
