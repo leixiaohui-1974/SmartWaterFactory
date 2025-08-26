@@ -160,4 +160,12 @@ This project is designed to be extensible. Here are some ideas for future improv
 - **New Controller Types**: Implement and compare other control strategies, such as an On-Off controller.
 
 ---
+
+## 8. Examples and Development Guide
+
+For a hands-on, step-by-step guide from basic usage to advanced development, please see the tutorials in the `/examples` directory.
+
+- **[Click here to access the Development Guide](./examples/README.md)**
+
+---
 This concludes the detailed documentation. For a quick start guide, please refer to `README.md`.
