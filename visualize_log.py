@@ -1,8 +1,9 @@
 import csv
+import argparse
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-def visualize_simulation_log(log_file: str = 'simulation_log.csv', output_image: str = 'simulation_plot.png'):
+def visualize_simulation_log(log_file: str, output_image: str):
     """
     Reads a simulation log file and generates a plot of the results.
 
@@ -51,4 +52,13 @@ def visualize_simulation_log(log_file: str = 'simulation_log.csv', output_image:
     print(f"Plot saved to {output_image}")
 
 if __name__ == '__main__':
-    visualize_simulation_log()
+    parser = argparse.ArgumentParser(description="Visualize simulation log data.")
+    parser.add_argument('--log-file', type=str, default='simulation_log.csv', help='Path to the input CSV log file.')
+    parser.add_argument('--output-image', type=str, default='simulation_plot.png', help='Path to save the output plot image.')
+
+    args = parser.parse_args()
+
+    visualize_simulation_log(
+        log_file=args.log_file,
+        output_image=args.output_image
+    )
