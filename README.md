@@ -53,6 +53,10 @@ This will run a default simulation of 300 steps. You can also customize the simu
 ```bash
 python3 run_simulation.py --steps 500 --turbidity-setpoint 4.5 --log-file custom_log.csv
 ```
+You can also choose the controller type (`pid` or `on-off`):
+```bash
+python3 run_simulation.py --controller-type on-off
+```
 
 ### 2. Visualizing the Results
 After running the simulation, you can generate a plot of the results:

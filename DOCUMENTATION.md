@@ -62,21 +62,39 @@ The project is designed with a clear separation of concerns, dividing the system
 
 ### 3.3. `PIDController`
 - **Location**: `water_plant_controller/control/pid_controller.py`
-- **Description**: A generic and reusable PID controller.
-- **Core Parameters (`__init__`)**:
-    - `Kp`: Proportional gain. Reacts to the current error.
-    - `Ki`: Integral gain. Corrects for past, cumulative error and eliminates steady-state error.
-    - `Kd`: Derivative gain. Responds to the rate of change of the error, helping to dampen oscillations.
-    - `setpoint`: The target value for the process variable.
-    - `reverse_acting`: A boolean that inverts the controller's response. Set to `True` for processes where an increase in output should cause a decrease in the measured variable (e.g., turbidity control).
-- **Key Methods**:
-    - `calculate(current_value)`: Computes the control output based on the current measured value.
-    - `set_output_limits(min, max)`: Constrains the controller's output to a realistic range (e.g., a valve cannot be more than 100% open).
-    - `set_integral_limits(min, max)`: A crucial part of **anti-windup**. This prevents the integral term from accumulating excessively when the controller output is saturated, which would otherwise cause significant overshoot.
+- **Description**: A generic and reusable PID controller that provides smooth and stable control by considering the past, present, and future error.
+- **Key Methods**: `calculate`, `set_output_limits`, `set_integral_limits`.
+
+### 3.4. `OnOffController`
+- **Location**: `water_plant_controller/control/on_off_controller.py`
+- **Description**: A simple "bang-bang" controller. It switches the output to its maximum value if the system is below the setpoint and to its minimum value if above the setpoint. It is easy to implement but often results in oscillations and instability.
+- **Key Methods**: `calculate`, `set_output_limits`.
 
 ---
 
-## 4. Configuration
+## 4. Controller Performance Comparison
+
+To demonstrate the difference between the PID and On-Off controllers, we can run simulations with each and visualize the results.
+
+**PID Controller Performance**
+Run the simulation with the default PID controller:
+`python3 run_simulation.py --controller-type pid --log-file log_pid.csv`
+`python3 visualize_log.py --log-file log_pid.csv --output-image plot_pid.png`
+
+The PID controller provides a smooth, stable response. It quickly brings the process variables to their setpoints with minimal overshoot and holds them steady.
+![PID Controller Results](simulation_plot_pid.png)
+
+**On-Off Controller Performance**
+Run the simulation with the On-Off controller:
+`python3 run_simulation.py --controller-type on-off --log-file log_on_off.csv`
+`python3 visualize_log.py --log-file log_on_off.csv --output-image plot_on_off.png`
+
+The On-Off controller causes the process variables to oscillate continuously around the setpoint. Because it can only be fully on or fully off, it cannot make fine adjustments, leading to instability and inefficiency.
+![On-Off Controller Results](simulation_plot_on_off.png)
+
+---
+
+## 5. Configuration
 
 All key parameters are centralized in `config/settings.py`. This allows for easy tuning and experimentation without modifying the core logic.
 
@@ -85,15 +103,15 @@ All key parameters are centralized in `config/settings.py`. This allows for easy
 
 ---
 
-## 5. How to Run and Extend the Project
+## 6. How to Run and Extend the Project
 
-### 5.1. Running Tests
+### 6.1. Running Tests
 To verify the integrity of the system, run all tests from the root directory:
 ```bash
 python3 -m unittest discover tests
 ```
 
-### 5.2. Running a Simulation with Logging
+### 6.2. Running a Simulation with Logging
 The project includes a dedicated script to run the simulation, log its output to a CSV file, and visualize the results.
 
 **Step 1: Run the Simulation**
@@ -120,7 +138,7 @@ This will read `simulation_log.csv` and create `simulation_plot.png`. You can al
 python3 visualize_log.py --log-file custom_log.csv --output-image custom_plot.png
 ```
 
-### 5.3. Extending the Project
+### 6.3. Extending the Project
 This project is designed to be extensible. Here are some ideas for future improvements:
 - **Advanced Simulation**: Introduce time delays, non-linear effects, or noise to the simulator for more realism.
 - **New Controller Types**: Implement and compare other control strategies, such as an On-Off controller.
