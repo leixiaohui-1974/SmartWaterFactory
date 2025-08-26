@@ -74,6 +74,18 @@ To verify that the system is working correctly, you can run all the tests from t
 python3 -m unittest discover tests
 ```
 
+## Examples and Tutorials
+
+This project includes a comprehensive set of examples that serve as a beginner-to-advanced development guide. You can find them in the `/examples` directory.
+
+Each example is self-contained in its own folder and includes a `README.md` file that explains the concepts and the code.
+
+-   **[Example 1: Basic Simulation](./examples/01_basic_simulation/README.md)**
+-   **[Example 2: PID Controller Tuning](./examples/02_tuning_pid_controller/README.md)**
+-   **[Example 3: Controller Comparison](./examples/03_comparing_controllers/README.md)**
+-   **[Example 4: Advanced Simulation Features](./examples/04_advanced_simulation_features/README.md)**
+-   **[Example 5: Extending the Simulator Guide](./examples/05_extending_the_simulator/README.md)**
+
 ## Key Components
 
 ### `WaterQuality`
