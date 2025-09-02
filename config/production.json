@@ -1,0 +1,39 @@
+{
+  "database": {
+    "host": "prod-db-server",
+    "port": 5432,
+    "database": "water_plant_prod",
+    "username": "prod_user",
+    "password": "***HIDDEN***",
+    "pool_size": 20,
+    "max_overflow": 40
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file_path": "/var/log/water_plant/production.log",
+    "max_file_size": 52428800,
+    "backup_count": 10,
+    "enable_console": false,
+    "enable_file": true
+  },
+  "simulation": {
+    "default_steps": 1000,
+    "max_steps": 100000,
+    "time_step": 1.0,
+    "output_directory": "/var/data/water_plant/outputs",
+    "enable_real_time": false,
+    "performance_monitoring": true
+  },
+  "security": {
+    "secret_key": "***HIDDEN***",
+    "token_expiry": 3600,
+    "max_login_attempts": 3,
+    "enable_rate_limiting": true,
+    "cors_origins": [
+      "https://water-plant.company.com",
+      "https://monitoring.company.com"
+    ]
+  },
+  "debug": false
+}

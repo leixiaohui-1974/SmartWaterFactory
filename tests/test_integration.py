@@ -12,24 +12,24 @@ from config.settings import PID_GAINS
 
 class TestIntegration(unittest.TestCase):
     """
-    Integration tests to ensure the controller and simulator work together.
+    集成测试，确保控制器和模拟器协同工作。
     """
 
     def test_closed_loop_control(self):
         """
-        Test a full closed-loop control scenario where PID controllers
-        drive the plant simulator towards setpoints.
+        测试完整的闭环控制场景，其中PID控制器
+        驱动工艺模拟器达到设定点。
         """
-        # 1. Initialization
+        # 1. 初始化
         initial_quality = WaterQuality(
             timestamp=datetime(2023, 1, 1, 12, 0, 0),
             ph=7.0,
-            turbidity=25.0,  # High initial turbidity
-            dissolved_oxygen=4.0  # Low initial DO
+            turbidity=25.0,  # 高初始浊度
+            dissolved_oxygen=4.0  # 低初始DO
         )
         simulator = PlantSimulator(initial_quality)
 
-        # 2. Controller Setup
+        # 2. 控制器设置
         turbidity_setpoint = 5.0
         do_setpoint = 8.5
 
@@ -50,7 +50,7 @@ class TestIntegration(unittest.TestCase):
         aeration_controller.set_output_limits(0, 20)
         aeration_controller.set_integral_limits(-15, 15)
 
-        # 3. Simulation Loop
+        # 3. 模拟循环
         simulation_steps = 300
         for _ in range(simulation_steps):
             current_quality = simulator.current_quality
@@ -58,26 +58,26 @@ class TestIntegration(unittest.TestCase):
             aeration_rate = aeration_controller.calculate(current_quality.dissolved_oxygen)
             simulator.step(coagulant_dose=coagulant_dose, aeration_rate=aeration_rate)
 
-        # 4. Assertions
+        # 4. 断言
         final_quality = simulator.current_quality
         self.assertAlmostEqual(final_quality.turbidity, turbidity_setpoint, delta=1.0)
         self.assertAlmostEqual(final_quality.dissolved_oxygen, do_setpoint, delta=0.5)
 
     def test_pid_anti_windup(self):
         """
-        Tests that the integral term does not grow uncontrollably when the output is saturated.
+        测试当输出饱和时，积分项不会无限增长。
         """
-        # High proportional gain to force saturation
+        # 高比例增益强制饱和
         controller = PIDController(Kp=50, Ki=0.1, Kd=0, setpoint=100)
-        controller.set_output_limits(0, 10) # Low output limit
-        controller.set_integral_limits(-5, 5) # Integral limits
+        controller.set_output_limits(0, 10) # 低输出限制
+        controller.set_integral_limits(-5, 5) # 积分限制
 
-        # Keep feeding a large error to the controller
+        # 持续向控制器输入大误差
         for _ in range(100):
             output = controller.calculate(current_value=0)
-            self.assertAlmostEqual(output, 10) # Should be saturated at max output
+            self.assertAlmostEqual(output, 10) # 应该在最大输出处饱和
 
-        # The integral term should be clamped at its max limit, not infinity
+        # 积分项应该限制在其最大限制，而不是无穷大
         self.assertAlmostEqual(controller._integral, 5)
 
 if __name__ == '__main__':

@@ -1,8 +1,8 @@
-# Python artifacts
+# Python构建产物
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Simulation log files
+# 模拟日志文件
 *.csv

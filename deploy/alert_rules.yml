@@ -1,0 +1,161 @@
+groups:
+  - name: water_plant_alerts
+    rules:
+      # 应用可用性告警
+      - alert: WaterPlantAppDown
+        expr: up{job="water-plant-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "水厂应用服务不可用"
+          description: "水厂应用服务已停止响应超过1分钟"
+
+      # 高CPU使用率告警
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU使用率过高"
+          description: "实例 {{ $labels.instance }} CPU使用率超过80%，当前值: {{ $value }}%"
+
+      # 高内存使用率告警
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "内存使用率过高"
+          description: "实例 {{ $labels.instance }} 内存使用率超过85%，当前值: {{ $value }}%"
+
+      # 磁盘空间不足告警
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "磁盘空间不足"
+          description: "实例 {{ $labels.instance }} 根分区可用空间少于10%，当前值: {{ $value }}%"
+
+      # 数据库连接告警
+      - alert: DatabaseDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "数据库服务不可用"
+          description: "PostgreSQL数据库服务已停止响应超过2分钟"
+
+      # Redis连接告警
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis服务不可用"
+          description: "Redis缓存服务已停止响应超过2分钟"
+
+  - name: water_quality_alerts
+    rules:
+      # 水质异常告警
+      - alert: WaterQualityAbnormal
+        expr: water_quality_ph < 6.5 or water_quality_ph > 8.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "水质pH值异常"
+          description: "水质pH值超出正常范围(6.5-8.5)，当前值: {{ $value }}"
+
+      - alert: HighTurbidity
+        expr: water_quality_turbidity > 5.0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "浊度过高"
+          description: "水质浊度超过5.0 NTU，当前值: {{ $value }} NTU"
+
+      - alert: LowDissolvedOxygen
+        expr: water_quality_dissolved_oxygen < 4.0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "溶解氧过低"
+          description: "溶解氧浓度低于4.0 mg/L，当前值: {{ $value }} mg/L"
+
+      - alert: HighTemperature
+        expr: water_quality_temperature > 35.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "水温过高"
+          description: "水温超过35°C，当前值: {{ $value }}°C"
+
+  - name: control_system_alerts
+    rules:
+      # 控制系统告警
+      - alert: PumpFailure
+        expr: pump_status == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "水泵故障"
+          description: "水泵 {{ $labels.pump_id }} 已停止工作"
+
+      - alert: HighPumpSpeed
+        expr: pump_speed > 90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "水泵转速过高"
+          description: "水泵 {{ $labels.pump_id }} 转速持续超过90%，当前值: {{ $value }}%"
+
+      - alert: ControllerError
+        expr: controller_error_rate > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "控制器错误率过高"
+          description: "控制器错误率超过10%，当前值: {{ $value }}%"
+
+  - name: performance_alerts
+    rules:
+      # 性能告警
+      - alert: HighResponseTime
+        expr: http_request_duration_seconds{quantile="0.95"} > 2.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API响应时间过长"
+          description: "95%的API请求响应时间超过2秒，当前值: {{ $value }}秒"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API错误率过高"
+          description: "API 5xx错误率超过5%，当前值: {{ $value }}%"
+
+      - alert: TooManyConnections
+        expr: active_connections > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "活跃连接数过多"
+          description: "活跃连接数超过1000，当前值: {{ $value }}"

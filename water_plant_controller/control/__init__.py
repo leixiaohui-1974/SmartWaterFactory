@@ -1,1 +1,1 @@
-# This file makes control a Python package.
+# 此文件使control成为一个Python包。

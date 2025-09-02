@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: water-plant-config
+  namespace: water-plant
+data:
+  production.json: |
+    {
+      "database": {
+        "host": "postgres-service",
+        "port": 5432,
+        "name": "waterplant",
+        "pool_size": 20,
+        "max_overflow": 30
+      },
+      "redis": {
+        "host": "redis-service",
+        "port": 6379,
+        "db": 0,
+        "max_connections": 50
+      },
+      "api": {
+        "host": "0.0.0.0",
+        "port": 5000,
+        "debug": false,
+        "enable_cors": true,
+        "enable_authentication": true,
+        "enable_websocket": true,
+        "rate_limit_per_minute": 100
+      },
+      "logging": {
+        "level": "INFO",
+        "format": "json",
+        "file_rotation": true,
+        "max_file_size": "10MB",
+        "backup_count": 5
+      },
+      "monitoring": {
+        "enable_metrics": true,
+        "metrics_port": 9090,
+        "health_check_interval": 30
+      },
+      "security": {
+        "jwt_expiration_hours": 24,
+        "password_min_length": 8,
+        "max_login_attempts": 5,
+        "lockout_duration_minutes": 15
+      }
+    }
+  
+  logging.conf: |
+    [loggers]
+    keys=root,water_plant
+    
+    [handlers]
+    keys=consoleHandler,fileHandler
+    
+    [formatters]
+    keys=jsonFormatter
+    
+    [logger_root]
+    level=INFO
+    handlers=consoleHandler
+    
+    [logger_water_plant]
+    level=INFO
+    handlers=consoleHandler,fileHandler
+    qualname=water_plant
+    propagate=0
+    
+    [handler_consoleHandler]
+    class=StreamHandler
+    level=INFO
+    formatter=jsonFormatter
+    args=(sys.stdout,)
+    
+    [handler_fileHandler]
+    class=handlers.RotatingFileHandler
+    level=INFO
+    formatter=jsonFormatter
+    args=('/app/logs/water_plant.log', 'a', 10485760, 5)
+    
+    [formatter_jsonFormatter]
+    format={"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "message": "%(message)s"}
+    datefmt=%Y-%m-%d %H:%M:%S
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: water-plant-secrets
+  namespace: water-plant
+type: Opaque
+data:
+  # 注意：这些是示例值，在生产环境中应该使用实际的加密值
+  # 使用 echo -n 'your-secret' | base64 来生成
+  database-url: cG9zdGdyZXNxbDovL3Bvc3RncmVzOnBhc3N3b3JkQHBvc3RncmVzLXNlcnZpY2U6NTQzMi93YXRlcnBsYW50  # postgresql://postgres:password@postgres-service:5432/waterplant
+  redis-url: cmVkaXM6Ly9yZWRpcy1zZXJ2aWNlOjYzNzkvMA==  # redis://redis-service:6379/0
+  jwt-secret: eW91ci1zdXBlci1zZWNyZXQtand0LWtleS1jaGFuZ2UtaW4tcHJvZHVjdGlvbg==  # your-super-secret-jwt-key-change-in-production

@@ -1,0 +1,39 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "water_plant_test",
+    "username": "test_user",
+    "password": "test_password",
+    "pool_size": 3,
+    "max_overflow": 5
+  },
+  "logging": {
+    "level": "WARNING",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file_path": null,
+    "max_file_size": 1048576,
+    "backup_count": 1,
+    "enable_console": true,
+    "enable_file": false
+  },
+  "simulation": {
+    "default_steps": 10,
+    "max_steps": 100,
+    "time_step": 0.1,
+    "output_directory": "test_outputs",
+    "enable_real_time": false,
+    "performance_monitoring": false
+  },
+  "security": {
+    "secret_key": "test-secret-key",
+    "token_expiry": 300,
+    "max_login_attempts": 100,
+    "enable_rate_limiting": false,
+    "cors_origins": [
+      "http://localhost:3000",
+      "http://localhost:8080"
+    ]
+  },
+  "debug": true
+}

@@ -1,23 +1,23 @@
-# --- Simulation Parameters ---
+# --- 模拟参数 ---
 
-# These parameters define the behavior of the water treatment plant simulator.
-# They are intended to be constants but can be tuned for different scenarios.
+# 这些参数定义了水处理厂模拟器的行为。
+# 它们旨在成为常数，但可以为不同场景进行调整。
 
 SIMULATION_DEFAULTS = {
-    "do_saturation": 9.0,           # Saturation concentration for dissolved oxygen (mg/L)
-    "do_consumption_rate": 0.02,    # Natural rate of DO consumption by biomass
-    "turbidity_decay_factor": 0.05, # How effectively coagulant reduces turbidity
-    "do_increase_rate": 0.05,       # How effectively aeration increases DO
-    "time_delay_steps": 5,          # Number of steps to delay control actions
-    "aeration_non_linearity": 1.5,  # Factor for non-linear aeration efficiency
+    "do_saturation": 9.0,           # 溶解氧饱和浓度 (mg/L)
+    "do_consumption_rate": 0.02,    # 生物质自然消耗DO的速率
+    "turbidity_decay_factor": 0.05, # 混凝剂降低浊度的有效性
+    "do_increase_rate": 0.05,       # 曝气增加DO的有效性
+    "time_delay_steps": 5,          # 延迟控制动作的步数
+    "aeration_non_linearity": 1.5,  # 非线性曝气效率因子
 }
 
 
-# --- PID Controller Gains ---
+# --- PID控制器增益 ---
 
-# These are the default tuning parameters (gains) for the PID controllers.
-# They provide a stable starting point but may need to be adjusted for
-# optimal performance depending on the operational conditions.
+# 这些是PID控制器的默认调优参数（增益）。
+# 它们提供了稳定的起点，但可能需要根据
+# 操作条件进行调整以获得最佳性能。
 
 PID_GAINS = {
     "dosing_controller": {

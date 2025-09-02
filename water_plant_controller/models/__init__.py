@@ -1,1 +1,1 @@
-# This file makes models a Python package.
+# 此文件使models成为一个Python包。

@@ -1,0 +1,113 @@
+{
+  "timestamp": 1756809447.4234262,
+  "summary": {
+    "total_functions": 3,
+    "total_system_records": 3
+  },
+  "function_metrics": {
+    "water_treatment_simulation": {
+      "function_name": "water_treatment_simulation",
+      "call_count": 5,
+      "avg_execution_time": 0.04077830000023823,
+      "last_execution_time": 0.060512600000947714,
+      "memory_usage": 0.0,
+      "max_memory": 0.0031280517578125,
+      "min_memory": 0.0,
+      "cpu_usage": 14.6,
+      "last_timestamp": 1756809444.992827
+    },
+    "quality_analysis": {
+      "function_name": "quality_analysis",
+      "call_count": 3,
+      "avg_execution_time": 0.05122363333551524,
+      "last_execution_time": 0.05079639999894425,
+      "memory_usage": 0.000274658203125,
+      "max_memory": 0.0020475387573242188,
+      "min_memory": 0.000274658203125,
+      "cpu_usage": 13.55,
+      "last_timestamp": 1756809445.1958652
+    },
+    "intensive_calculation": {
+      "function_name": "intensive_calculation",
+      "call_count": 3,
+      "avg_execution_time": 0.019587633333382353,
+      "last_execution_time": 0.02179910000268137,
+      "memory_usage": 0.00164031982421875,
+      "max_memory": 0.0017719268798828125,
+      "min_memory": 0.00164031982421875,
+      "cpu_usage": 61.65,
+      "last_timestamp": 1756809446.2616553
+    }
+  },
+  "system_metrics_summary": {
+    "cpu": {
+      "avg": 34.733333333333334,
+      "max": 40.8,
+      "min": 27.7
+    },
+    "memory": {
+      "avg": 33.5,
+      "max": 33.5,
+      "min": 33.5
+    },
+    "latest": {
+      "cpu_percent": 35.7,
+      "memory_percent": 33.5,
+      "disk_usage": 49.9
+    }
+  },
+  "top_performers": {
+    "fastest_functions": [
+      {
+        "name": "intensive_calculation",
+        "avg_time": 0.019587633333382353,
+        "call_count": 3
+      },
+      {
+        "name": "water_treatment_simulation",
+        "avg_time": 0.04077830000023823,
+        "call_count": 5
+      },
+      {
+        "name": "quality_analysis",
+        "avg_time": 0.05122363333551524,
+        "call_count": 3
+      }
+    ],
+    "slowest_functions": [
+      {
+        "name": "intensive_calculation",
+        "avg_time": 0.019587633333382353,
+        "call_count": 3
+      },
+      {
+        "name": "water_treatment_simulation",
+        "avg_time": 0.04077830000023823,
+        "call_count": 5
+      },
+      {
+        "name": "quality_analysis",
+        "avg_time": 0.05122363333551524,
+        "call_count": 3
+      }
+    ],
+    "memory_intensive_functions": [
+      {
+        "name": "water_treatment_simulation",
+        "max_memory": 0.0031280517578125,
+        "avg_memory": 0.0
+      },
+      {
+        "name": "quality_analysis",
+        "max_memory": 0.0020475387573242188,
+        "avg_memory": 0.000274658203125
+      },
+      {
+        "name": "intensive_calculation",
+        "max_memory": 0.0017719268798828125,
+        "avg_memory": 0.00164031982421875
+      }
+    ]
+  },
+  "recommendations": []
+}

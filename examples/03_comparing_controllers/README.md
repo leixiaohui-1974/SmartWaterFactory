@@ -1,55 +1,55 @@
-# Example 3: Comparing Controller Performance (PID vs. On-Off)
+# 示例3：比较控制器性能（PID vs. 开关）
 
-This example guides you on how to use the main project scripts to run simulations with two different types of controllers—`PID` and `On-Off`—and how to visualize the results to compare their performance.
+此示例指导您如何使用主项目脚本来运行两种不同类型控制器的模拟—`PID` 和 `开关`—以及如何可视化结果来比较它们的性能。
 
-## The Goal
+## 目标
 
-The goal is to demonstrate the practical difference between a sophisticated controller (PID) and a very simple one (On-Off). This comparison highlights why PID controllers are so widely used in industrial processes that require stability and precision.
+目标是演示复杂控制器（PID）和非常简单控制器（开关）之间的实际差异。此比较突出了为什么PID控制器在需要稳定性和精度的工业工艺中如此广泛使用。
 
--   **PID Controller**: Aims for a smooth, stable, and precise response.
--   **On-Off Controller**: A "bang-bang" controller that is either fully on or fully off. It is simple but typically very inefficient and unstable.
+-   **PID控制器**：旨在实现平滑、稳定和精确的响应。
+-   **开关控制器**：一个"砰砰"控制器，要么完全开启，要么完全关闭。它很简单，但通常非常低效和不稳定。
 
-## How to Run the Comparison
+## 如何运行比较
 
-This example uses the main scripts from the root of the project.
+此示例使用项目根目录的主脚本。
 
-### Step 1: Run the PID Simulation
+### 步骤1：运行PID模拟
 
-First, run the simulation using the default `pid` controller. We will direct the output to specific files so we don't overwrite them in the next step.
+首先，使用默认的 `pid` 控制器运行模拟。我们将输出定向到特定文件，这样在下一步中就不会覆盖它们。
 
-From the project's root directory, run:
+从项目的根目录运行：
 ```bash
 python3 run_simulation.py --controller-type pid --log-file pid_log.csv
 ```
 
-### Step 2: Run the On-Off Simulation
+### 步骤2：运行开关模拟
 
-Next, run the simulation again, but this time select the `on-off` controller.
+接下来，再次运行模拟，但这次选择 `on-off` 控制器。
 
-From the project's root directory, run:
+从项目的根目录运行：
 ```bash
 python3 run_simulation.py --controller-type on-off --log-file on_off_log.csv
 ```
 
-### Step 3: Visualize Both Results
+### 步骤3：可视化两个结果
 
-Now that you have two log files, you can generate a plot for each one.
+现在您有两个日志文件，可以为每个生成图表。
 
-Generate the plot for the PID controller:
+为PID控制器生成图表：
 ```bash
 python3 visualize_log.py --log-file pid_log.csv --output-image pid_plot.png
 ```
 
-Generate the plot for the On-Off controller:
+为开关控制器生成图表：
 ```bash
 python3 visualize_log.py --log-file on_off_log.csv --output-image on_off_plot.png
 ```
 
-### Step 4: Compare the Output Images
+### 步骤4：比较输出图像
 
-You should now have two images in your root directory: `pid_plot.png` and `on_off_plot.png`.
+您现在应该在根目录中有两个图像：`pid_plot.png` 和 `on_off_plot.png`。
 
--   **`pid_plot.png`**: Look at the plot for the PID controller. You will see that both the turbidity and dissolved oxygen levels move smoothly towards their setpoints and then hold steady with very little error.
--   **`on_off_plot.png`**: Now look at the On-Off controller's plot. You will see a dramatically different result. The process variables will constantly swing (oscillate) around the setpoint, never settling down. Because the controller can only be 100% on or 100% off, it is always over-correcting, leading to an unstable and inefficient system.
+-   **`pid_plot.png`**：查看PID控制器的图表。您将看到浊度和溶解氧水平都平滑地移动到其设定点，然后保持稳定，误差很小。
+-   **`on_off_plot.png`**：现在查看开关控制器的图表。您将看到一个截然不同的结果。工艺变量将在设定点周围不断摆动（振荡），永远不会稳定下来。因为控制器只能是100%开启或100%关闭，它总是过度校正，导致不稳定和低效的系统。
 
-This comparison is also discussed in the main `DOCUMENTATION.md` file, which includes these plots for reference.
+此比较也在主 `DOCUMENTATION.md` 文件中讨论，其中包含这些图表供参考。

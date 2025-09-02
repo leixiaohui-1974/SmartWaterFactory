@@ -1,5 +1,8 @@
-# This file lists the Python dependencies for the Water Plant Controller project.
-# You can install all dependencies by running:
+# 此文件列出了水厂控制器项目的Python依赖项。
+# 您可以通过运行以下命令安装所有依赖项：
 # pip install -r requirements.txt
 
 matplotlib
+watchdog>=2.1.0  # 配置文件热重载监控
+psutil>=5.8.0  # 系统性能监控
+numpy>=1.21.0  # 数值计算优化

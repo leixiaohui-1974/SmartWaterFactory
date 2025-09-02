@@ -1,48 +1,48 @@
-# Example 2: PID Controller Tuning
+# 示例2：PID控制器调优
 
-This example demonstrates the critical concept of **PID tuning** and how different gain values (`Kp`, `Ki`, `Kd`) can dramatically affect the performance of a control system.
+此示例演示了**PID调优**的关键概念，以及不同的增益值（`Kp`、`Ki`、`Kd`）如何显著影响控制系统的性能。
 
-## The Goal
+## 目标
 
-The goal is to visually show the difference between an "aggressively" tuned controller and a "conservatively" tuned controller.
--   **Aggressive Tuning**: Often results in a fast response, but can lead to **overshoot** (where the process variable goes past the setpoint) and **oscillation** (swinging back and forth around the setpoint).
--   **Conservative Tuning**: Typically results in a smoother, more stable response with less overshoot, but may be slower to reach the setpoint.
+目标是直观地显示"激进"调优控制器和"保守"调优控制器之间的差异。
+-   **激进调优**：通常导致快速响应，但可能导致**超调**（工艺变量超过设定点）和**振荡**（在设定点周围来回摆动）。
+-   **保守调优**：通常导致更平滑、更稳定的响应，超调更少，但可能更慢达到设定点。
 
-## The Code: `run_tuning_sim.py`
+## 代码：`run_tuning_sim.py`
 
-This script runs two separate simulations of the turbidity controller, each with a different set of PID gains.
+此脚本运行浊度控制器的两个独立模拟，每个都有不同的PID增益集。
 
-### The `run_simulation_with_gains` Function
-This helper function takes `Kp`, `Ki`, and `Kd` as arguments and runs a simulation using them. This allows us to easily test different tuning profiles. Note that in this example, we are only focused on the turbidity controller; the dissolved oxygen controller is replaced with a "dummy" that does nothing.
+### `run_simulation_with_gains` 函数
+此辅助函数接受 `Kp`、`Ki` 和 `Kd` 作为参数，并使用它们运行模拟。这允许我们轻松测试不同的调优配置。注意，在此示例中，我们只关注浊度控制器；溶解氧控制器被一个什么都不做的"虚拟"控制器替代。
 
-### Simulation 1: Aggressive Tuning
+### 模拟1：激进调优
 ```python
 run_simulation_with_gains(
-    name="Aggressive Tuning",
+    name="激进调优",
     Kp=0.2,
-    Ki=0.1, # High integral gain
+    Ki=0.1, # 高积分增益
     Kd=0.1
 )
 ```
-In this first run, we use a relatively high integral gain (`Ki = 0.1`). The integral term accumulates past errors, and if this gain is too high, it can "wind up" and push the controller to keep applying a strong action even when the error is getting small. This is what causes overshoot.
+在第一次运行中，我们使用相对较高的积分增益（`Ki = 0.1`）。积分项累积过去的误差，如果此增益过高，它可能会"饱和"并推动控制器即使在误差变小时也继续应用强动作。这就是导致超调的原因。
 
-### Simulation 2: Conservative Tuning
+### 模拟2：保守调优
 ```python
 run_simulation_with_gains(
-    name="Conservative Tuning",
+    name="保守调优",
     Kp=0.1,
-    Ki=0.01, # Lower integral gain
-    Kd=0.5   # Higher derivative gain
+    Ki=0.01, # 较低积分增益
+    Kd=0.5   # 较高微分增益
 )
 ```
-In the second run, we do two things to make the controller more stable:
-1.  **Lower `Ki`**: We reduce the integral gain to `0.01`, which lessens the impact of past errors and reduces the tendency to overshoot.
-2.  **Higher `Kd`**: We increase the derivative gain to `0.5`. The derivative term acts as a "brake" by reacting to how fast the error is changing. A higher `Kd` makes the controller more proactive in preventing overshoot, leading to a more dampened and stable response.
+在第二次运行中，我们做两件事来使控制器更稳定：
+1.  **降低 `Ki`**：我们将积分增益降低到 `0.01`，这减少了过去误差的影响并降低了超调趋势。
+2.  **提高 `Kd`**：我们将微分增益提高到 `0.5`。微分项通过响应误差变化的速度来充当"刹车"。较高的 `Kd` 使控制器在防止超调方面更主动，导致更阻尼和稳定的响应。
 
-## How to Run This Example
+## 如何运行此示例
 
-Navigate to the root directory of the project and run the script directly:
+导航到项目的根目录并直接运行脚本：
 ```bash
 python3 examples/02_tuning_pid_controller/run_tuning_sim.py
 ```
-Observe the output from the two simulations. You should see that the "Aggressive" run causes the turbidity to drop well below the setpoint of 5.0 before recovering, while the "Conservative" run approaches the setpoint more smoothly. This illustrates the fundamental trade-off in control tuning between speed and stability.
+观察两个模拟的输出。您应该看到"激进"运行导致浊度在恢复之前下降到设定点5.0以下，而"保守"运行更平滑地接近设定点。这说明了控制调优中速度和稳定性之间的基本权衡。

@@ -1,18 +1,18 @@
-# Example 4: Advanced Simulation Features
+# 示例4：高级模拟功能
 
-This example demonstrates how to enable and configure the advanced features of the `PlantSimulator` to create a more realistic and challenging control environment.
+此示例演示如何启用和配置 `PlantSimulator` 的高级功能，以创建更现实和具有挑战性的控制环境。
 
-## The Goal
+## 目标
 
-The goal is to show how to override the default simulation parameters to model two common real-world phenomena:
-1.  **Time Delay**: The time it takes for a control action to have a measurable effect on the process. For example, the time it takes for a chemical dose to travel through a pipe to the sensor.
-2.  **Non-Linearity**: Many real-world processes are not perfectly linear. In our case, we model that the efficiency of aeration decreases as the water becomes more saturated with oxygen.
+目标是展示如何覆盖默认模拟参数来建模两种常见的现实世界现象：
+1.  **时间延迟**：控制动作对工艺产生可测量效果所需的时间。例如，化学剂量通过管道到达传感器所需的时间。
+2.  **非线性**：许多现实世界的工艺不是完全线性的。在我们的案例中，我们建模曝气效率随着水变得更饱和氧气而降低。
 
-Controlling a system with these features is significantly more difficult and often requires more careful PID tuning.
+控制具有这些功能的系统明显更困难，通常需要更仔细的PID调优。
 
-## The Code: `run_advanced_sim.py`
+## 代码：`run_advanced_sim.py`
 
-### 1. Custom Configuration
+### 1. 自定义配置
 ```python
 advanced_sim_config = SIMULATION_DEFAULTS.copy()
 advanced_sim_config.update({
@@ -20,24 +20,24 @@ advanced_sim_config.update({
     "aeration_non_linearity": 2.0
 })
 ```
-The key part of this example is the creation of a custom configuration dictionary. We start by copying the `SIMULATION_DEFAULTS` from the main settings file, and then we `update()` it with the parameters we want to change.
+此示例的关键部分是创建自定义配置字典。我们首先从主设置文件复制 `SIMULATION_DEFAULTS`，然后我们用想要更改的参数`update()`它。
 
--   **`time_delay_steps`**: We set this to `15`. This means any action taken by the controllers (like applying a dose or changing the aeration rate) will not have any effect on the simulation until 15 steps *after* the action was taken.
--   **`aeration_non_linearity`**: We increase this to `2.0` (the default is 1.5). This makes the decrease in aeration efficiency more pronounced as the dissolved oxygen level gets closer to its saturation point.
+-   **`time_delay_steps`**：我们将其设置为 `15`。这意味着控制器采取的任何动作（如应用剂量或改变曝气速率）在动作采取后15步*之前*不会对模拟产生任何影响。
+-   **`aeration_non_linearity`**：我们将其增加到 `2.0`（默认值为1.5）。这使得随着溶解氧水平更接近其饱和点，曝气效率的降低更加明显。
 
-### 2. Initializing the Simulator
+### 2. 初始化模拟器
 ```python
 simulator = PlantSimulator(initial_quality, config=advanced_sim_config)
 ```
-When we create the `PlantSimulator` instance, we simply pass our `advanced_sim_config` dictionary to it. The simulator will use these values instead of its defaults.
+当我们创建 `PlantSimulator` 实例时，我们只需将 `advanced_sim_config` 字典传递给它。模拟器将使用这些值而不是其默认值。
 
-### 3. Running the Simulation
-The rest of the script is very similar to the basic example. We set up the PID controllers with the default gains and run the simulation loop.
+### 3. 运行模拟
+脚本的其余部分与基础示例非常相似。我们使用默认增益设置PID控制器并运行模拟循环。
 
-## How to Run This Example
+## 如何运行此示例
 
-Navigate to the root directory of the project and run the script directly:
+导航到项目的根目录并直接运行脚本：
 ```bash
 python3 examples/04_advanced_simulation_features/run_advanced_sim.py
 ```
-When you run this example, pay close attention to the output. You will notice a significant "lag" at the beginning of the simulation. For the first 15 steps, the turbidity and dissolved oxygen levels will not change, because the initial actions of the controllers are still "in the pipeline" due to the time delay. This demonstrates how delays can make a system much harder to control and is a critical factor to consider when tuning controllers for real-world applications.
+当您运行此示例时，请密切关注输出。您会注意到模拟开始时有一个显著的"滞后"。在前15步中，浊度和溶解氧水平不会改变，因为控制器的初始动作由于时间延迟仍然"在管道中"。这演示了延迟如何使系统更难控制，这是为现实世界应用调优控制器时需要考虑的关键因素。

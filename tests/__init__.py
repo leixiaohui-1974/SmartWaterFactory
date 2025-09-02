@@ -1,1 +1,1 @@
-# This file makes tests a Python package.
+# 此文件使tests成为一个Python包。

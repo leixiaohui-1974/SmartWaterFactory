@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-09-02T18:50:50.459026",
+  "series_count": 3,
+  "series_analysis": {
+    "周期性数据": {
+      "data_points": 100,
+      "trends": {
+        "trend": "decreasing",
+        "slope": -0.3838442374216578,
+        "r_squared": 0.09206047576269616,
+        "mean": 52.840033259973175,
+        "std": 3.6336692342786643,
+        "min": 49.00812840174274,
+        "max": 60.351389435858295
+      },
+      "anomaly_count": 0,
+      "latest_value": 56.85666633137035,
+      "unit": "units"
+    },
+    "突变数据": {
+      "data_points": 100,
+      "trends": {
+        "trend": "increasing",
+        "slope": 0.2518230634982048,
+        "r_squared": 0.26458676123064684,
+        "mean": 24.785089785942564,
+        "std": 1.4061719229432807,
+        "min": 21.79781112189298,
+        "max": 27.42419684077233
+      },
+      "anomaly_count": 0,
+      "latest_value": 25.258691717911415,
+      "unit": "units"
+    },
+    "异常数据": {
+      "data_points": 100,
+      "trends": {
+        "trend": "increasing",
+        "slope": 0.3982864257913144,
+        "r_squared": 0.16083698515535827,
+        "mean": 29.680222468662304,
+        "std": 2.852525382886094,
+        "min": 24.494758074832887,
+        "max": 34.9514909278623
+      },
+      "anomaly_count": 3,
+      "latest_value": 29.347521929601395,
+      "unit": "units"
+    }
+  }
+}

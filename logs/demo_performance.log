@@ -1,0 +1,1 @@
+{"timestamp": 1756809810.8671463, "level": "INFO", "logger_name": "demo.performance", "message": "性能分析报告", "module": "", "function": null, "line_number": 0, "thread_id": 29076, "process_id": 29616, "extra_data": {"report_type": "performance_summary", "total_functions": 2, "total_system_records": 0, "report_generated_at": "2025-09-02T18:43:30.867104"}, "exception_info": null}

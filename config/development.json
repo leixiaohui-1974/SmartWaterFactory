@@ -1,0 +1,43 @@
+{
+  "environment": "development",
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "water_plant_dev",
+    "username": "dev_user",
+    "password": "***HIDDEN***",
+    "pool_size": 5,
+    "max_overflow": 10
+  },
+  "logging": {
+    "level": "DEBUG",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file_path": "logs/development.log",
+    "max_file_size": 5242880,
+    "backup_count": 3,
+    "enable_console": true,
+    "enable_file": true
+  },
+  "simulation": {
+    "default_steps": 50,
+    "max_steps": 1000,
+    "time_step": 1.0,
+    "output_directory": "outputs",
+    "enable_real_time": false,
+    "performance_monitoring": false,
+    "enable_noise": true,
+    "noise_level": 0.01,
+    "enable_disturbances": true
+  },
+  "security": {
+    "secret_key": "***HIDDEN***",
+    "token_expiry": 3600,
+    "max_login_attempts": 5,
+    "enable_rate_limiting": true,
+    "cors_origins": [
+      "http://localhost:3000",
+      "http://localhost:8080"
+    ]
+  },
+  "debug": true
+}
