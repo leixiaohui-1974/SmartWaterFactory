@@ -185,6 +185,33 @@ class MCPServer:
                 "version": self.service_info.version
             })
 
+        # Prometheus指标端点
+        async def metrics_endpoint(request):
+            """Prometheus指标导出端点。"""
+            try:
+                from .monitoring import get_metrics, record_session_metrics
+
+                # 更新会话指标
+                stats = self.session_manager.get_stats()
+                record_session_metrics(
+                    stats.get("total_sessions", 0),
+                    stats.get("total_simulations", 0)
+                )
+
+                # 导出指标
+                metrics = get_metrics()
+                prometheus_text = metrics.export_prometheus_format()
+
+                return web.Response(
+                    text=prometheus_text,
+                    content_type="text/plain; version=0.0.4"
+                )
+            except ImportError:
+                return web.json_response(
+                    {"error": "Monitoring not available"},
+                    status=503
+                )
+
         # MCP端点
         async def mcp_endpoint(request):
             try:
@@ -249,6 +276,7 @@ class MCPServer:
 
         # 注册路由
         app.router.add_get("/health", health_check)
+        app.router.add_get("/metrics", metrics_endpoint)
         app.router.add_post("/mcp", mcp_endpoint)
         app.router.add_post("/sessions", create_session_endpoint)
 

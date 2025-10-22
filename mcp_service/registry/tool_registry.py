@@ -18,6 +18,12 @@ from ..models.schemas import (
     MCPErrorCode
 )
 
+try:
+    from ..monitoring import record_tool_call
+    MONITORING_AVAILABLE = True
+except ImportError:
+    MONITORING_AVAILABLE = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,17 +41,22 @@ class ToolRegistry:
         self._categories: Dict[str, List[str]] = {}
         self._tool_stats: Dict[str, Dict[str, Any]] = {}
 
-    def register(self, tool: Tool) -> None:
+    def register(self, tool: Tool, allow_override: bool = False) -> None:
         """注册工具。
 
         Args:
             tool: 要注册的工具对象
+            allow_override: 是否允许覆盖已存在的工具
 
         Raises:
-            ValueError: 如果工具名称已存在
+            ValueError: 如果工具名称已存在且不允许覆盖
         """
         if tool.name in self._tools:
-            raise ValueError(f"Tool '{tool.name}' already registered")
+            if not allow_override:
+                logger.warning(f"Tool '{tool.name}' already registered, skipping")
+                return
+            else:
+                logger.info(f"Overriding existing tool '{tool.name}'")
 
         self._tools[tool.name] = tool
 
@@ -81,16 +92,28 @@ class ToolRegistry:
 
         # 从分类索引中移除
         if tool.category in self._categories:
-            self._categories[tool.category].remove(tool_name)
+            if tool_name in self._categories[tool.category]:
+                self._categories[tool.category].remove(tool_name)
             if not self._categories[tool.category]:
                 del self._categories[tool.category]
 
         # 删除工具和统计信息
         del self._tools[tool_name]
-        del self._tool_stats[tool_name]
+        if tool_name in self._tool_stats:
+            del self._tool_stats[tool_name]
 
         logger.info(f"Unregistered tool: {tool_name}")
         return True
+
+    def clear(self) -> None:
+        """清空所有已注册的工具。
+
+        主要用于测试环境。
+        """
+        self._tools.clear()
+        self._categories.clear()
+        self._tool_stats.clear()
+        logger.info("Cleared all registered tools")
 
     def get_tool(self, tool_name: str) -> Optional[Tool]:
         """获取工具。
@@ -205,6 +228,10 @@ class ToolRegistry:
                 self._tool_stats[tool_name]['success_count']
             )
 
+            # 记录监控指标
+            if MONITORING_AVAILABLE:
+                record_tool_call(tool_name, True, execution_time)
+
             logger.info(f"Tool {tool_name} executed successfully in {execution_time:.3f}s")
 
             return ToolCallResult(
@@ -220,6 +247,10 @@ class ToolRegistry:
 
             # 更新错误统计
             self._tool_stats[tool_name]['error_count'] += 1
+
+            # 记录监控指标
+            if MONITORING_AVAILABLE:
+                record_tool_call(tool_name, False, execution_time)
 
             return ToolCallResult(
                 success=False,

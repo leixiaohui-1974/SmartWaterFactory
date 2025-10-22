@@ -152,6 +152,10 @@ class TestMCPProtocolHandler(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
         """异步设置测试环境。"""
+        # 清空工具注册表
+        registry = get_registry()
+        registry.clear()
+
         # 注册工具
         register_all_tools()
 
@@ -219,6 +223,10 @@ class TestMCPIntegration(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
         """异步设置测试环境。"""
+        # 清空工具注册表
+        registry = get_registry()
+        registry.clear()
+
         # 注册所有工具
         register_all_tools()
 
