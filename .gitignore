@@ -3,6 +3,102 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
 
-# 模拟日志文件
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+.env/
+.virtualenv/
+
+# IDE和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# 环境变量和配置
+.env
+.env.local
+.env.*.local
+*.env
+
+# 日志文件
+*.log
+logs/
+log/
+
+# 测试和覆盖率
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# 数据文件
 *.csv
+data/*.csv
+data/*.json
+data/*.pkl
+data/*.h5
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# 性能分析
+*.prof
+*.lprof
+
+# 文档构建
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+
+# 缓存
+.cache/
+*.cache
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SSL证书
+*.pem
+*.key
+*.crt
+deploy/ssl/*
+
+# 备份文件
+*.backup
+backup/
