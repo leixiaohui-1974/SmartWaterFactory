@@ -33,6 +33,11 @@ class MCPServerConfig:
     cors_origins: List[str] = field(default_factory=lambda: ['*'])
     max_request_size: int = 10 * 1024 * 1024  # 10MB
 
+    @property
+    def enable_auth(self) -> bool:
+        """认证启用状态（enable_authentication的别名）。"""
+        return self.enable_authentication
+
     # 性能配置
     max_concurrent_sessions: int = 100
     session_timeout_minutes: int = 30

@@ -175,7 +175,12 @@ class MCPServer:
         # 启动会话清理任务
         await self.session_manager.start_cleanup_task()
 
-        app = web.Application()
+        # 创建认证中间件
+        from .auth import create_auth_middleware
+        auth_middleware = create_auth_middleware(enabled=self.config.enable_auth)
+
+        # 创建应用（添加中间件）
+        app = web.Application(middlewares=[auth_middleware.middleware])
 
         # 健康检查端点
         async def health_check(request):
@@ -218,8 +223,14 @@ class MCPServer:
                 # 获取或创建会话
                 session_id = request.headers.get("X-Session-ID")
                 if not session_id:
+                    # 从API密钥或请求头获取用户ID
+                    api_key = request.get("api_key")
+                    if api_key:
+                        user_id = api_key.user_id
+                    else:
+                        user_id = request.headers.get("X-User-ID", "anonymous")
+
                     # 创建新会话
-                    user_id = request.headers.get("X-User-ID", "anonymous")
                     session = self.session_manager.create_session(
                         user_id=user_id,
                         metadata={"mode": "http"}
@@ -259,7 +270,14 @@ class MCPServer:
         async def create_session_endpoint(request):
             try:
                 data = await request.json()
-                user_id = data.get("user_id", "anonymous")
+
+                # 从API密钥或请求数据获取用户ID
+                api_key = request.get("api_key")
+                if api_key:
+                    user_id = api_key.user_id
+                else:
+                    user_id = data.get("user_id", "anonymous")
+
                 metadata = data.get("metadata", {})
 
                 session = self.session_manager.create_session(user_id, metadata)
@@ -273,6 +291,25 @@ class MCPServer:
             except Exception as e:
                 logger.error(f"Error creating session: {e}", exc_info=True)
                 return web.json_response({"error": str(e)}, status=500)
+
+        # GraphQL端点（可选）
+        try:
+            from .graphql import create_graphql_app
+            graphql_handler, graphiql_handler = create_graphql_app()
+            if graphql_handler and graphiql_handler:
+                app.router.add_post("/graphql", graphql_handler)
+                app.router.add_get("/graphiql", graphiql_handler)
+                logger.info("GraphQL API enabled at /graphql and /graphiql")
+        except Exception as e:
+            logger.warning(f"GraphQL API not available: {e}")
+
+        # API密钥管理路由
+        try:
+            from .api import setup_key_routes
+            setup_key_routes(app)
+            logger.info("API key management routes enabled at /api/keys")
+        except Exception as e:
+            logger.warning(f"API key management routes not available: {e}")
 
         # 注册路由
         app.router.add_get("/health", health_check)

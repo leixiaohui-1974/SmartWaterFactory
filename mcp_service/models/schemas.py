@@ -279,3 +279,38 @@ class OptimizationConfig:
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典。"""
         return asdict(self)
+
+
+@dataclass
+class SuccessResponse:
+    """成功响应。"""
+    success: bool
+    data: Any = None
+    message: Optional[str] = None
+
+    def __dict__(self) -> Dict[str, Any]:
+        """转换为字典。"""
+        result = {"success": self.success}
+        if self.data is not None:
+            result["data"] = self.data
+        if self.message is not None:
+            result["message"] = self.message
+        return result
+
+
+@dataclass
+class ErrorResponse:
+    """错误响应。"""
+    success: bool
+    error: str
+    code: Optional[str] = None
+
+    def __dict__(self) -> Dict[str, Any]:
+        """转换为字典。"""
+        result = {
+            "success": self.success,
+            "error": self.error
+        }
+        if self.code is not None:
+            result["code"] = self.code
+        return result
