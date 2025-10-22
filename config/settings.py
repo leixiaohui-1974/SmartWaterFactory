@@ -5,17 +5,48 @@
 
 SIMULATION_DEFAULTS = {
     "do_saturation": 9.0,           # 溶解氧饱和浓度 (mg/L)
-    "do_consumption_rate": 0.02,    # 生物质自然消耗DO的速率
-    "turbidity_decay_factor": 0.05, # 混凝剂降低浊度的有效性
-    "do_increase_rate": 0.05,       # 曝气增加DO的有效性
+    "do_consumption_rate": 0.02,    # 生物质自然消耗 DO 的速率
+    "turbidity_decay_factor": 0.05, # 混凝剂降低浊度的有效系数
+    "do_increase_rate": 0.05,       # 曝气增加 DO 的有效系数
     "time_delay_steps": 5,          # 延迟控制动作的步数
     "aeration_non_linearity": 1.5,  # 非线性曝气效率因子
+    "sensor_fault_thresholds": {    # 传感器故障检测阈值
+        "turbidity": 3.0,
+        "dissolved_oxygen": 1.0,
+    },
+    "redundant_sensor_weights": {   # 冗余传感器融合权重
+        "primary": 1.0,
+        "secondary": 0.5,
+    },
 }
 
 
-# --- PID控制器增益 ---
+# --- 能耗协调参数 ---
 
-# 这些是PID控制器的默认调优参数（增益）。
+ENERGY_COORDINATION = {
+    "enabled": True,
+    "budget_per_step": 50.0,  # 每步允许的最大能耗/成本
+    "weights": {
+        "coagulant": 0.4,
+        "aeration": 0.6,
+    },
+}
+
+# --- 传感器容错策略 ---
+
+FAULT_TOLERANCE = {
+    "enabled": True,
+    "consecutive_fault_threshold": 3,  # 连续故障次数后触发降级
+    "redundant_sensor_weights": {
+        "primary": 1.0,
+        "secondary": 0.5,
+    },
+}
+
+
+# --- PID 控制器增益 ---
+
+# 这些是 PID 控制器的默认调优参数（增益）。
 # 它们提供了稳定的起点，但可能需要根据
 # 操作条件进行调整以获得最佳性能。
 

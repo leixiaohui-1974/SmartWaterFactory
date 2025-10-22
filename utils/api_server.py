@@ -32,11 +32,35 @@ except ImportError:
     SocketIO = None
 
 try:
-    import jwt
-    JWT_AVAILABLE = True
+    import jwt as _pyjwt  # type: ignore
 except ImportError:
+    _pyjwt = None
+
+_required_jwt_attrs = ("encode", "decode", "ExpiredSignatureError", "InvalidTokenError")
+if _pyjwt is not None and all(hasattr(_pyjwt, attr) for attr in _required_jwt_attrs):
+    jwt = _pyjwt  # type: ignore[assignment]
+    JWT_AVAILABLE = True
+else:
     JWT_AVAILABLE = False
-    jwt = None
+
+    class _MockJWTModule:
+        """Fallback JWT-like object when PyJWT is unavailable."""
+
+        class ExpiredSignatureError(Exception):
+            """Raised when a token is considered expired."""
+
+        class InvalidTokenError(Exception):
+            """Raised when a token is invalid."""
+
+        @staticmethod
+        def encode(*args, **kwargs):  # type: ignore[unused-argument]
+            raise NotImplementedError("PyJWT is not installed.")
+
+        @staticmethod
+        def decode(*args, **kwargs):  # type: ignore[unused-argument]
+            raise NotImplementedError("PyJWT is not installed.")
+
+    jwt = _MockJWTModule()
 
 
 @dataclass

@@ -483,10 +483,13 @@ class ContextualLogger:
         
         # 创建日志记录
         record = self.logger.makeRecord(
-            self.logger.name, level, 
-            kwargs.pop('pathname', ''), kwargs.pop('lineno', 0),
-            message % args if args else message,
-            args, exc_info
+            self.logger.name,
+            level,
+            kwargs.pop('pathname', ''),
+            kwargs.pop('lineno', 0),
+            message,
+            args,
+            exc_info,
         )
         
         # 添加额外数据

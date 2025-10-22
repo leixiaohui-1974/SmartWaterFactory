@@ -144,7 +144,7 @@ def demo_data_analysis():
         print(f"\n  {name}:")
         print(f"    趋势: {trends['trend']}")
         print(f"    斜率: {trends['slope']:.4f}")
-        print(f"    拟合度(R²): {trends['r_squared']:.4f}")
+        print(f"    拟合度(R^2): {trends['r_squared']:.4f}")
         print(f"    均值: {trends['mean']:.2f}")
         print(f"    标准差: {trends['std']:.2f}")
         print(f"    范围: [{trends['min']:.2f}, {trends['max']:.2f}]")
@@ -316,8 +316,14 @@ def demo_interactive_dashboard():
     print("  - 关闭窗口退出仪表板")
     
     # 询问用户是否启动仪表板
-    response = input("\n是否启动交互式仪表板? (y/n): ").lower().strip()
-    
+    if not sys.stdin.isatty():
+        response = "n"
+    else:
+        try:
+            response = input("\n是否启动交互式仪表盘? (y/n): ").lower().strip()
+        except EOFError:
+            response = "n"
+
     if response == 'y' or response == 'yes':
         try:
             print("\n启动仪表板...")
@@ -507,17 +513,17 @@ def main():
         
         for filename in generated_files:
             if os.path.exists(filename):
-                print(f"  ✓ {filename}")
+                print(f"  [OK] {filename}")
             else:
-                print(f"  ✗ {filename} (未生成)")
+                print(f"  [MISSING] {filename} (未生成)")
         
         print("\n功能特性总结:")
-        print("  ✓ 实时图表和数据更新")
-        print("  ✓ 多主题支持 (默认/深色/浅色)")
-        print("  ✓ 数据趋势分析和异常检测")
-        print("  ✓ 性能监控集成")
-        print("  ✓ 交互式监控仪表板")
-        print("  ✓ 高级数据分析和报告生成")
+        print("  [OK] 实时图表和数据更新")
+        print("  [OK] 多主题支持 (默认/深色/浅色)")
+        print("  [OK] 数据趋势分析和异常检测")
+        print("  [OK] 性能监控集成")
+        print("  [OK] 交互式监控仪表板")
+        print("  [OK] 高级数据分析和报告生成")
         
     except KeyboardInterrupt:
         print("\n\n演示被用户中断。")
