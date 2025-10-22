@@ -13,6 +13,7 @@ ENV ENVIRONMENT=production
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件
@@ -35,7 +36,7 @@ EXPOSE 5000 8080
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:5000/health')" || exit 1
+    CMD curl -f http://localhost:5000/api/health || exit 1
 
 # 启动命令
 CMD ["python", "run_simulation.py", "--api-server", "--host", "0.0.0.0", "--port", "5000"]

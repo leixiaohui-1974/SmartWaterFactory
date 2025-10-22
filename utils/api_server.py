@@ -36,6 +36,13 @@ try:
 except ImportError:
     _pyjwt = None
 
+try:
+    import bcrypt
+    BCRYPT_AVAILABLE = True
+except ImportError:
+    BCRYPT_AVAILABLE = False
+    bcrypt = None
+
 _required_jwt_attrs = ("encode", "decode", "ExpiredSignatureError", "InvalidTokenError")
 if _pyjwt is not None and all(hasattr(_pyjwt, attr) for attr in _required_jwt_attrs):
     jwt = _pyjwt  # type: ignore[assignment]
@@ -101,14 +108,14 @@ class APIResponse:
 class UserCredentials:
     """用户凭证。"""
     username: str
-    password: str
+    password_hash: str  # 存储哈希后的密码
     role: str = 'user'  # user, admin, operator
     permissions: List[str] = None
-    
+
     def __post_init__(self):
         if self.permissions is None:
             self.permissions = self._get_default_permissions()
-    
+
     def _get_default_permissions(self) -> List[str]:
         """获取默认权限。"""
         if self.role == 'admin':
@@ -117,6 +124,25 @@ class UserCredentials:
             return ['read', 'write', 'control']
         else:
             return ['read']
+
+    @staticmethod
+    def hash_password(password: str) -> str:
+        """哈希密码。"""
+        if BCRYPT_AVAILABLE:
+            return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        else:
+            # 如果bcrypt不可用，使用简单的哈希（不推荐用于生产）
+            import hashlib
+            return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+    def verify_password(self, password: str) -> bool:
+        """验证密码。"""
+        if BCRYPT_AVAILABLE:
+            return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+        else:
+            # 简单哈希验证
+            import hashlib
+            return self.password_hash == hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 
 class AuthenticationManager:
@@ -132,25 +158,68 @@ class AuthenticationManager:
         self._add_default_users()
     
     def _add_default_users(self):
-        """添加默认用户。"""
-        self.users['admin'] = UserCredentials('admin', 'admin123', 'admin')
-        self.users['operator'] = UserCredentials('operator', 'op123', 'operator')
-        self.users['user'] = UserCredentials('user', 'user123', 'user')
+        """添加默认用户（从环境变量读取）。
+
+        警告: 默认密码仅用于开发环境！
+        生产环境必须通过环境变量设置安全密码。
+        """
+        import os
+
+        # 从环境变量读取用户配置，如果未设置则使用默认值（仅开发环境）
+        admin_username = os.getenv('ADMIN_USERNAME', 'admin')
+        admin_password = os.getenv('ADMIN_PASSWORD', 'admin123')
+
+        operator_username = os.getenv('OPERATOR_USERNAME', 'operator')
+        operator_password = os.getenv('OPERATOR_PASSWORD', 'op123')
+
+        user_username = os.getenv('USER_USERNAME', 'user')
+        user_password = os.getenv('USER_PASSWORD', 'user123')
+
+        # 检查是否使用了默认密码（安全警告）
+        if admin_password == 'admin123' or operator_password == 'op123' or user_password == 'user123':
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                "⚠️  检测到使用默认密码！这在生产环境中是不安全的。"
+                "请通过环境变量设置: ADMIN_PASSWORD, OPERATOR_PASSWORD, USER_PASSWORD"
+            )
+
+        # 创建用户（密码将被哈希存储）
+        self.users[admin_username] = UserCredentials(
+            admin_username,
+            UserCredentials.hash_password(admin_password),
+            'admin'
+        )
+        self.users[operator_username] = UserCredentials(
+            operator_username,
+            UserCredentials.hash_password(operator_password),
+            'operator'
+        )
+        self.users[user_username] = UserCredentials(
+            user_username,
+            UserCredentials.hash_password(user_password),
+            'user'
+        )
     
     def authenticate(self, username: str, password: str) -> Optional[str]:
         """用户认证。
-        
+
         Args:
             username: 用户名
             password: 密码
-        
+
         Returns:
             JWT token或None
         """
         # 首先验证用户名和密码
-        if username not in self.users or self.users[username].password != password:
+        if username not in self.users:
+            return None
+
+        user = self.users[username]
+        if not user.verify_password(password):
             return None
         
+        # 密码验证已通过，生成token
         if not JWT_AVAILABLE:
             token = 'mock_token_' + username
             # 在mock模式下也记录活跃token
@@ -160,26 +229,24 @@ class AuthenticationManager:
                 'last_used': datetime.now()
             }
             return token
-        
-        if username in self.users and self.users[username].password == password:
-            user = self.users[username]
-            payload = {
-                'username': username,
-                'role': user.role,
-                'permissions': user.permissions,
-                'exp': datetime.utcnow() + timedelta(hours=self.expiration_hours)
-            }
-            token = jwt.encode(payload, self.secret_key, algorithm='HS256')
-            
-            # 记录活跃token
-            self.active_tokens[token] = {
-                'username': username,
-                'created_at': datetime.now(),
-                'last_used': datetime.now()
-            }
-            
-            return token
-        return None
+
+        # 使用JWT生成token
+        payload = {
+            'username': username,
+            'role': user.role,
+            'permissions': user.permissions,
+            'exp': datetime.utcnow() + timedelta(hours=self.expiration_hours)
+        }
+        token = jwt.encode(payload, self.secret_key, algorithm='HS256')
+
+        # 记录活跃token
+        self.active_tokens[token] = {
+            'username': username,
+            'created_at': datetime.now(),
+            'last_used': datetime.now()
+        }
+
+        return token
     
     def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
         """验证token。
