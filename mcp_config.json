@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "smart-water-factory": {
+      "command": "python",
+      "args": [
+        "start_mcp_service.py",
+        "--mode",
+        "stdio"
+      ],
+      "cwd": "/home/user/SmartWaterFactory",
+      "env": {
+        "MCP_LOG_LEVEL": "INFO",
+        "MCP_MAX_SESSIONS": "100",
+        "MCP_SESSION_TIMEOUT": "30"
+      }
+    }
+  }
+}

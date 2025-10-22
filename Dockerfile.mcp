@@ -1,0 +1,74 @@
+# Multi-stage build for Smart Water Factory MCP Service
+# Stage 1: Builder
+FROM python:3.9-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt requirements-mcp.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --user -r requirements.txt && \
+    pip install --no-cache-dir --user -r requirements-mcp.txt
+
+# Stage 2: Runtime
+FROM python:3.9-slim
+
+LABEL maintainer="Smart Water Factory Team"
+LABEL description="MCP Service for Smart Water Factory - AI-powered water treatment control"
+LABEL version="1.0.0"
+
+WORKDIR /app
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /root/.local
+
+# Make sure scripts in .local are usable
+ENV PATH=/root/.local/bin:$PATH
+
+# Copy application code
+COPY mcp_service/ ./mcp_service/
+COPY water_plant_controller/ ./water_plant_controller/
+COPY utils/ ./utils/
+COPY config/ ./config/
+COPY start_mcp_service.py ./
+COPY mcp_config.json ./
+COPY .env.mcp ./.env
+
+# Create necessary directories
+RUN mkdir -p logs data/mcp temp/mcp
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV MCP_HOST=0.0.0.0
+ENV MCP_PORT=8000
+ENV MCP_LOG_LEVEL=INFO
+
+# Expose HTTP port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=40s \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Non-root user for security
+RUN useradd -m -u 1000 mcpuser && \
+    chown -R mcpuser:mcpuser /app
+
+USER mcpuser
+
+# Default command (HTTP mode)
+CMD ["python", "start_mcp_service.py", "--mode", "http", "--host", "0.0.0.0", "--port", "8000"]
