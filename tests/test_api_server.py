@@ -370,6 +370,27 @@ class TestWaterPlantAPIServer(unittest.TestCase):
                 WaterPlantAPIServer(self.config)
 
 
+    def test_hil_dashboard_route_serves_html(self):
+        """???? HIL ????????"""
+        server = WaterPlantAPIServer(APIConfig(enable_authentication=False, enable_websocket=False))
+        client = server.app.test_client()
+
+        response = client.get('/hil/dashboard')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'text/html')
+        self.assertIn(b'HIL REST Panel', response.data)
+        self.assertIn(b'autostepStartBtn', response.data)
+        self.assertIn(b'replaySlider', response.data)
+        self.assertIn(b'presetTourBtn', response.data)
+        self.assertIn(b'sumSamples', response.data)
+        self.assertIn(b'sumPeakTurbidity', response.data)
+        self.assertIn(b'runOptimizationBtn', response.data)
+        self.assertIn(b'optWeightTurbidity', response.data)
+        self.assertIn(b'exportOptimizationJsonBtn', response.data)
+        self.assertIn(b'exportOptimizationCsvBtn', response.data)
+
+
 class TestConvenienceFunctions(unittest.TestCase):
     """测试便利函数。"""
     
@@ -401,6 +422,112 @@ class TestConvenienceFunctions(unittest.TestCase):
         except ImportError:
             # 如果Flask不可用，这是预期的行为
             pass
+
+
+class TestHILServiceMethods(unittest.TestCase):
+    """测试 HIL 服务方法。"""
+
+    def setUp(self):
+        self.server = WaterPlantAPIServer.__new__(WaterPlantAPIServer)
+        self.server.config = APIConfig(enable_authentication=False, enable_websocket=False)
+        self.server.logger = MagicMock()
+        self.server.plant_data = {'system_status': {}}
+        self.server.hil_simulations = {}
+
+    def test_start_hil_simulation_and_list_scenarios(self):
+        result = self.server._start_hil_simulation({'scenario': 'steady', 'random_seed': 3})
+
+        self.assertEqual(result['status'], 'running')
+        self.assertEqual(result['scenario'], 'steady')
+        self.assertIn('steady', result['available_scenarios'])
+        summary = self.server._list_hil_scenarios()
+        self.assertEqual(summary['active_sessions'], 1)
+
+    def test_step_hil_simulation_and_set_control(self):
+        started = self.server._start_hil_simulation({'random_seed': 5})
+        simulation_id = started['simulation_id']
+
+        control = self.server._set_hil_control(
+            simulation_id,
+            {'coagulant_dose': 6.0, 'aeration_rate_ma': 12.0}
+        )
+        self.assertIn('applied', control)
+
+        stepped = self.server._step_hil_simulation(simulation_id, steps=2)
+        self.assertEqual(stepped['steps_executed'], 2)
+        self.assertEqual(stepped['current_step'], 2)
+        self.assertIn('latest_snapshot', stepped)
+
+    def test_set_scenario_and_manage_faults(self):
+        started = self.server._start_hil_simulation({'random_seed': 7})
+        simulation_id = started['simulation_id']
+
+        updated = self.server._set_hil_scenario(simulation_id, 'turbidity_spike')
+        self.assertEqual(updated['scenario'], 'turbidity_spike')
+
+        faulted = self.server._inject_hil_fault(
+            simulation_id,
+            'turbidity',
+            'stuck',
+            value=42.0,
+        )
+        self.assertEqual(faulted['fault']['mode'], 'stuck')
+
+        stepped = self.server._step_hil_simulation(simulation_id)
+        self.assertEqual(stepped['latest_snapshot']['measured_quality']['turbidity'], 42.0)
+
+        cleared = self.server._clear_hil_fault(simulation_id, 'turbidity')
+        self.assertTrue(cleared['fault']['cleared'])
+
+    def test_missing_hil_simulation_raises(self):
+        with self.assertRaises(KeyError):
+            self.server._get_hil_status('missing')
+
+        with self.assertRaises(ValueError):
+            self.server._step_hil_simulation('missing', steps=0)
+
+    def test_optimize_hil_controls_returns_ranked_results(self):
+        result = self.server._optimize_hil_controls({
+            'scenario': 'steady',
+            'steps': 4,
+            'coagulant_min': 5.0,
+            'coagulant_max': 6.0,
+            'coagulant_step': 1.0,
+            'aeration_min': 10.0,
+            'aeration_max': 12.0,
+            'aeration_step': 2.0,
+            'top_k': 2,
+            'random_seed': 11,
+        })
+
+        self.assertEqual(result['grid']['candidate_count'], 4)
+        self.assertEqual(len(result['top_results']), 2)
+        self.assertEqual(result['top_results'][0]['rank'], 1)
+        self.assertIn('candidate', result['best_result'])
+        self.assertIn('summary', result['best_result'])
+        self.assertIn('score', result['best_result'])
+        self.assertLessEqual(result['top_results'][0]['score'], result['top_results'][1]['score'])
+
+
+class TestAPIServerRunMethod(unittest.TestCase):
+    """测试 API 服务启动方法。"""
+
+    def test_run_uses_allow_unsafe_werkzeug_for_socketio(self):
+        server = WaterPlantAPIServer.__new__(WaterPlantAPIServer)
+        server.config = APIConfig(host='127.0.0.1', port=5055, debug=False)
+        server.logger = MagicMock()
+        server.app = MagicMock()
+        server.socketio = MagicMock()
+
+        server.run()
+
+        server.socketio.run.assert_called_once_with(
+            server.app,
+            host='127.0.0.1',
+            port=5055,
+            debug=False,
+            allow_unsafe_werkzeug=True,
+        )
 
 
 class TestIntegration(unittest.TestCase):

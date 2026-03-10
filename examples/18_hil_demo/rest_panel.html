@@ -1,0 +1,1619 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartWaterFactory HIL REST Panel</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a30;
+      --panel-2: #0d1427;
+      --muted: #9fb0d0;
+      --text: #e8eefc;
+      --accent: #4dc3ff;
+      --accent-2: #6ef0b2;
+      --warn: #ffd166;
+      --danger: #ff6b81;
+      --border: #223055;
+      --good: #5ce1a2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .18);
+    }
+    h1, h2, h3 { margin: 0 0 12px; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 18px; color: var(--accent); }
+    h3 { font-size: 14px; color: var(--muted); }
+    .stack { display: grid; gap: 12px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    input, select, textarea, button {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: Consolas, monospace;
+    }
+    button {
+      padding: 10px 12px;
+      background: #173056;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color .15s ease, transform .15s ease;
+    }
+    button:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .primary { background: #16416d; }
+    .success { background: #154b3a; }
+    .warn { background: #5a4717; }
+    .danger { background: #5a1d2a; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .metric {
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      min-height: 86px;
+    }
+    .metric .k { color: var(--muted); font-size: 12px; }
+    .metric .v {
+      margin-top: 6px;
+      font-size: 20px;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+    .metric .s {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    pre {
+      margin: 0;
+      overflow: auto;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      color: #d9e7ff;
+      max-height: 360px;
+    }
+    .log {
+      max-height: 260px;
+      overflow: auto;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #142746;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #12223f;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .status-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 10px currentColor;
+    }
+    .status-badge.running { color: var(--good); }
+    .status-badge.running::before { background: var(--good); }
+    .status-badge.warn { color: var(--warn); }
+    .status-badge.warn::before { background: var(--warn); }
+    .status-badge.error { color: var(--danger); }
+    .status-badge.error::before { background: var(--danger); }
+    .status-badge.info { color: var(--accent); }
+    .status-badge.info::before { background: var(--accent); }
+    .inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .checkbox {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .checkbox input {
+      width: auto;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+    .chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .chart-card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .chart-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .chart-meta {
+      font-size: 12px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend i {
+      display: inline-block;
+      width: 12px;
+      height: 3px;
+      border-radius: 999px;
+    }
+    .chart-frame {
+      width: 100%;
+      height: 200px;
+      display: block;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+      border: 1px solid rgba(255,255,255,.03);
+    }
+    .range-info {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .file-button {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 112px;
+      background: #173056;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .file-button input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .muted { color: var(--muted); }
+    @media (max-width: 1120px) {
+      .wrap { grid-template-columns: 1fr; }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="stack">
+      <section class="card stack">
+        <div>
+          <h1>HIL REST Panel</h1>
+          <div class="pill">AquaMind / SmartWaterFactory / Zero-Build Demo</div>
+        </div>
+        <label>API Base URL
+          <input id="baseUrl" value="http://127.0.0.1:5056">
+        </label>
+        <div class="grid-2">
+          <label>用户名
+            <input id="username" value="admin">
+          </label>
+          <label>密码
+            <input id="password" type="password" value="admin123">
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="primary" id="loginBtn">登录并保存 Token</button>
+          <button id="healthBtn">健康检查</button>
+        </div>
+        <label>Bearer Token
+          <textarea id="token"></textarea>
+        </label>
+      </section>
+
+      <section class="card stack">
+        <h2>会话控制</h2>
+        <div class="grid-2">
+          <label>场景
+            <select id="scenarioSelect">
+              <option value="steady">steady</option>
+              <option value="turbidity_spike">turbidity_spike</option>
+              <option value="oxygen_sag">oxygen_sag</option>
+              <option value="cyclic_load">cyclic_load</option>
+            </select>
+          </label>
+          <label>步长 dt_s
+            <input id="dtValue" type="number" step="0.1" min="0.1" value="1.0">
+          </label>
+        </div>
+        <label>Simulation ID
+          <input id="simulationId" placeholder="启动后自动写入，也可手动粘贴已有会话 ID">
+        </label>
+        <div class="btn-row">
+          <button id="scenarioBtn">读取场景</button>
+          <button class="success" id="startBtn">启动 HIL</button>
+          <button id="statusBtn">刷新状态</button>
+          <button id="stepBtn">步进一步</button>
+          <button id="step5Btn">步进 5 次</button>
+        </div>
+      </section>
+
+      <section class="card stack">
+        <h2>控制与故障</h2>
+        <div class="grid-2">
+          <label>混凝剂投加量
+            <input id="coagulantDose" type="number" step="0.1" value="6.0">
+          </label>
+          <label>曝气电流 mA
+            <input id="aerationMa" type="number" step="0.1" value="12.0">
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="primary" id="controlBtn">下发控制</button>
+          <button class="warn" id="setSpikeBtn">切到 turbidity_spike</button>
+          <button class="warn" id="setOxygenBtn">切到 oxygen_sag</button>
+        </div>
+        <div class="grid-3">
+          <label>故障传感器
+            <select id="faultSensor">
+              <option value="turbidity">turbidity</option>
+              <option value="dissolved_oxygen">dissolved_oxygen</option>
+              <option value="ph">ph</option>
+            </select>
+          </label>
+          <label>故障模式
+            <select id="faultMode">
+              <option value="stuck">stuck</option>
+              <option value="bias">bias</option>
+              <option value="dropout">dropout</option>
+            </select>
+          </label>
+          <label>故障值
+            <input id="faultValue" type="number" step="0.1" value="42.0">
+          </label>
+        </div>
+        <div class="grid-2">
+          <label>故障偏置
+            <input id="faultBias" type="number" step="0.1" value="0.0">
+          </label>
+          <label>历史长度上限
+            <input id="historyLimit" type="number" min="10" step="10" value="60">
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="warn" id="faultBtn">注入故障</button>
+          <button class="danger" id="clearFaultBtn">清除故障</button>
+          <button id="clearHistoryBtn">清空趋势历史</button>
+        </div>
+      </section>
+
+      <section class="card stack">
+        <h2>???????</h2>
+        <div class="grid-2">
+          <label>?????? ms
+            <input id="autostepMs" type="number" min="200" step="100" value="1500">
+          </label>
+          <label>????
+            <input id="autostepBatch" type="number" min="1" step="1" value="1">
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="success" id="autostepStartBtn">??????</button>
+          <button class="danger" id="autostepStopBtn">??????</button>
+          <button id="exportBtn">????</button>
+          <label class="file-button">????
+            <input id="importFile" type="file" accept="application/json">
+          </label>
+          <button id="exitReplayBtn">????</button>
+        </div>
+        <label>????
+          <input id="replaySlider" type="range" min="0" max="0" value="0">
+        </label>
+        <div class="range-info">
+          <span id="replayInfo">???????</span>
+          <span id="recordingInfo">???? 0</span>
+        </div>
+        <div class="btn-row">
+          <button id="replayPrevBtn">???</button>
+          <button id="replayNextBtn">???</button>
+          <button id="replayLatestBtn">????</button>
+        </div>
+      </section>
+
+      <section class="card stack">
+        <h2>????</h2>
+        <div class="muted">????? HIL ??????????????????</div>
+        <div class="btn-row">
+          <button class="primary" id="presetTourBtn">????</button>
+          <button class="warn" id="presetDisturbanceBtn">????</button>
+          <button class="warn" id="presetFaultBtn">????</button>
+          <button class="danger" id="presetStopBtn">????</button>
+        </div>
+        <div class="range-info">
+          <span id="presetInfo">???????</span>
+          <span id="presetHint">????????????</span>
+        </div>
+      </section>
+
+      <section class="card stack">
+      <section class="card stack">
+        <h2>HIL ????</h2>
+        <div class="grid-2">
+          <label>????
+            <input id="optimizeSteps" type="number" min="1" step="1" value="8">
+          </label>
+          <label>Top K
+            <input id="optTopK" type="number" min="1" step="1" value="5">
+          </label>
+        </div>
+        <div class="grid-3">
+          <label>?????
+            <input id="optDoseMin" type="number" step="0.1" value="4.0">
+          </label>
+          <label>?????
+            <input id="optDoseMax" type="number" step="0.1" value="8.0">
+          </label>
+          <label>????
+            <input id="optDoseStep" type="number" step="0.1" value="1.0">
+          </label>
+        </div>
+        <div class="grid-3">
+          <label>?????
+            <input id="optAerationMin" type="number" step="0.1" value="8.0">
+          </label>
+          <label>?????
+            <input id="optAerationMax" type="number" step="0.1" value="14.0">
+          </label>
+          <label>????
+            <input id="optAerationStep" type="number" step="0.1" value="2.0">
+          </label>
+        </div>
+        <div class="grid-3">
+          <label>????
+            <input id="optWeightTurbidity" type="number" step="0.01" value="1.0">
+          </label>
+          <label>??????
+            <input id="optWeightPeak" type="number" step="0.01" value="0.35">
+          </label>
+          <label>DO ????
+            <input id="optWeightDo" type="number" step="0.01" value="1.25">
+          </label>
+        </div>
+        <div class="grid-3">
+          <label>????
+            <input id="optWeightChemical" type="number" step="0.01" value="0.08">
+          </label>
+          <label>????
+            <input id="optWeightAeration" type="number" step="0.01" value="0.03">
+          </label>
+          <label>??????
+            <input id="optWeightFault" type="number" step="0.01" value="2.0">
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="primary" id="runOptimizationBtn">????</button>
+          <button id="applyBestBtn">??????</button>
+          <button id="exportOptimizationJsonBtn">?? JSON</button>
+          <button id="exportOptimizationCsvBtn">?? CSV</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="k">????</div><div class="v" id="optBestScore">-</div><div class="s" id="optCandidateCount">??? 0</div></div>
+          <div class="metric"><div class="k">????</div><div class="v" id="optBestDose">-</div><div class="s" id="optBestDoseSummary">coagulant_dose</div></div>
+          <div class="metric"><div class="k">????</div><div class="v" id="optBestAeration">-</div><div class="s" id="optBestAerationSummary">aeration_rate</div></div>
+          <div class="metric"><div class="k">????</div><div class="v" id="optScenario">-</div><div class="s" id="optStepsInfo">steps -</div></div>
+        </div>
+        <pre id="optimizationView">[]</pre>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="card stack">
+        <div class="toolbar">
+          <div>
+            <h2>实时状态</h2>
+            <div class="muted">对照 Claude HIL 规划补上自动轮询与趋势观察</div>
+          </div>
+          <div class="inline">
+            <span id="runBadge" class="status-badge">未连接</span>
+            <label class="checkbox"><input id="pollToggle" type="checkbox">自动轮询</label>
+            <label class="checkbox">间隔
+              <select id="pollInterval">
+                <option value="1000">1s</option>
+                <option value="2000" selected>2s</option>
+                <option value="5000">5s</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="k">状态</div><div class="v" id="mStatus">-</div><div class="s" id="mUpdatedAt">-</div></div>
+          <div class="metric"><div class="k">场景</div><div class="v" id="mScenario">-</div><div class="s" id="mSimulationId">-</div></div>
+          <div class="metric"><div class="k">当前步</div><div class="v" id="mStep">-</div><div class="s" id="mHistoryCount">history: 0</div></div>
+          <div class="metric"><div class="k">故障检测</div><div class="v" id="mFault">-</div><div class="s" id="mLoopState">轮询关闭</div></div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="k">测量浊度</div><div class="v" id="mTurbidity">-</div><div class="s" id="mTurbidityCurrent">4-20mA: -</div></div>
+          <div class="metric"><div class="k">测量 DO</div><div class="v" id="mDo">-</div><div class="s" id="mDoCurrent">4-20mA: -</div></div>
+          <div class="metric"><div class="k">真实浊度</div><div class="v" id="mTrueTurbidity">-</div><div class="s" id="mDoseCmd">投加: -</div></div>
+          <div class="metric"><div class="k">真实 DO</div><div class="v" id="mTrueDo">-</div><div class="s" id="mAerationCmd">曝气: -</div></div>
+        </div>
+      </section>
+
+      <section class="card stack">
+        <h2>????</h2>
+        <div class="metrics">
+          <div class="metric"><div class="k">???</div><div class="v" id="sumSamples">0</div><div class="s" id="sumMode">?? / ??</div></div>
+          <div class="metric"><div class="k">????</div><div class="v" id="sumPeakTurbidity">-</div><div class="s" id="sumPeakStep">step -</div></div>
+          <div class="metric"><div class="k">?? DO</div><div class="v" id="sumMinDo">-</div><div class="s" id="sumMinDoStep">step -</div></div>
+          <div class="metric"><div class="k">??????</div><div class="v" id="sumFaultStep">-</div><div class="s" id="sumFaultCount">???? 0</div></div>
+        </div>
+      </section>
+
+      <section class="card stack">
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-head">
+              <div>
+                <h3>浊度趋势</h3>
+                <div id="chartMetaTurbidity" class="chart-meta">等待状态数据…</div>
+              </div>
+            </div>
+            <svg id="chartTurbidity" class="chart-frame" viewBox="0 0 420 200" preserveAspectRatio="none"></svg>
+            <div class="legend">
+              <span><i style="background:#4dc3ff"></i>测量值</span>
+              <span><i style="background:#ffd166"></i>真实值</span>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-head">
+              <div>
+                <h3>溶解氧趋势</h3>
+                <div id="chartMetaDo" class="chart-meta">等待状态数据…</div>
+              </div>
+            </div>
+            <svg id="chartDo" class="chart-frame" viewBox="0 0 420 200" preserveAspectRatio="none"></svg>
+            <div class="legend">
+              <span><i style="background:#6ef0b2"></i>测量值</span>
+              <span><i style="background:#ff6b81"></i>真实值</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card stack">
+        <h2>最新快照</h2>
+        <pre id="snapshotView">{}</pre>
+      </section>
+
+      <section class="card stack">
+        <h2>操作日志</h2>
+        <div class="log" id="logView"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const byId = (id) => document.getElementById(id);
+
+    const state = {
+      token: localStorage.getItem("hil_rest_token") || "",
+      baseUrl: localStorage.getItem("hil_rest_base_url") || "http://127.0.0.1:5056",
+      simulationId: localStorage.getItem("hil_rest_sim_id") || "",
+      pollMs: Number(localStorage.getItem("hil_rest_poll_ms") || 2000),
+      autoRefresh: localStorage.getItem("hil_rest_auto_refresh") === "1",
+      historyLimit: Number(localStorage.getItem("hil_rest_history_limit") || 60),
+      autostepMs: Number(localStorage.getItem("hil_rest_autostep_ms") || 1500),
+      autostepBatch: Number(localStorage.getItem("hil_rest_autostep_batch") || 1),
+      history: [],
+      lastStatus: null,
+      pollTimer: null,
+      autostepTimer: null,
+      isStepInFlight: false,
+      replayData: null,
+      replayIndex: 0,
+      optimizationResult: null,
+      renderMode: "live",
+      presetRunning: false,
+      presetCancel: false,
+      presetName: "",
+    };
+
+    function persist() {
+      localStorage.setItem("hil_rest_token", state.token);
+      localStorage.setItem("hil_rest_base_url", state.baseUrl);
+      localStorage.setItem("hil_rest_sim_id", state.simulationId);
+      localStorage.setItem("hil_rest_poll_ms", String(state.pollMs));
+      localStorage.setItem("hil_rest_auto_refresh", state.autoRefresh ? "1" : "0");
+      localStorage.setItem("hil_rest_history_limit", String(state.historyLimit));
+      localStorage.setItem("hil_rest_autostep_ms", String(state.autostepMs));
+      localStorage.setItem("hil_rest_autostep_batch", String(state.autostepBatch));
+    }
+
+    function syncInputs() {
+      byId("token").value = state.token;
+      byId("baseUrl").value = state.baseUrl;
+      byId("simulationId").value = state.simulationId;
+      byId("pollInterval").value = String(state.pollMs);
+      byId("pollToggle").checked = state.autoRefresh;
+      byId("historyLimit").value = String(state.historyLimit);
+      byId("autostepMs").value = String(state.autostepMs);
+      byId("autostepBatch").value = String(state.autostepBatch);
+    }
+
+    function log(message, data) {
+      const lines = [`[${new Date().toLocaleTimeString()}] ${message}`];
+      if (data !== undefined) {
+        lines.push(JSON.stringify(data, null, 2));
+      }
+      byId("logView").textContent = `${lines.join("\n")}\n\n${byId("logView").textContent}`;
+    }
+
+    function formatNumber(value, digits = 3) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) {
+        return "-";
+      }
+      return Number(value).toFixed(digits).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+    }
+
+    function authHeaders(json = false) {
+      const headers = {};
+      if (state.token) {
+        headers.Authorization = `Bearer ${state.token}`;
+      }
+      if (json) {
+        headers["Content-Type"] = "application/json";
+      }
+      return headers;
+    }
+
+    function pullInputState() {
+      state.baseUrl = byId("baseUrl").value.trim();
+      state.token = byId("token").value.trim();
+      state.simulationId = byId("simulationId").value.trim();
+      state.pollMs = Number(byId("pollInterval").value);
+      state.autoRefresh = byId("pollToggle").checked;
+      state.historyLimit = Math.max(10, Number(byId("historyLimit").value) || 60);
+      state.autostepMs = Math.max(200, Number(byId("autostepMs").value) || 1500);
+      state.autostepBatch = Math.max(1, Number(byId("autostepBatch").value) || 1);
+      persist();
+    }
+
+    function requireSimulationId() {
+      const simulationId = byId("simulationId").value.trim();
+      if (!simulationId) {
+        throw new Error("请先启动 HIL 会话，或填入已有 Simulation ID");
+      }
+      return simulationId;
+    }
+
+    async function api(path, options = {}) {
+      pullInputState();
+      const response = await fetch(state.baseUrl + path, options);
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message || `HTTP ${response.status}`);
+      }
+      return payload;
+    }
+
+    function setRunBadge(text, statusClass = "") {
+      const badge = byId("runBadge");
+      badge.textContent = text;
+      badge.className = `status-badge ${statusClass}`.trim();
+    }
+
+    function setDisplayBadge(text, statusClass = "info") {
+      const badge = byId("displayBadge");
+      badge.textContent = text;
+      badge.className = `status-badge ${statusClass}`.trim();
+    }
+
+    function getLoopStateText() {
+      const pollText = state.autoRefresh && state.renderMode === "live" ? `?? ${state.pollMs}ms` : "????";
+      const autostepText = state.autostepTimer ? `???? ${state.autostepMs}ms ?${state.autostepBatch}` : "??????";
+      return `${pollText} ? ${autostepText}`;
+    }
+
+    function renderLoopState() {
+      byId("mLoopState").textContent = getLoopStateText();
+      byId("recordingInfo").textContent = `???? ${state.history.length}`;
+    }
+
+    function setPolling(active) {
+      if (state.pollTimer) {
+        clearInterval(state.pollTimer);
+        state.pollTimer = null;
+      }
+      state.autoRefresh = active;
+      byId("pollToggle").checked = active;
+      persist();
+      if (active && state.simulationId && state.renderMode === "live") {
+        state.pollTimer = window.setInterval(() => {
+          withGuard(() => refreshStatus(true), true);
+        }, state.pollMs);
+      }
+      renderLoopState();
+    }
+
+    function stopAutostep(logMessage = true) {
+      if (state.autostepTimer) {
+        clearInterval(state.autostepTimer);
+        state.autostepTimer = null;
+        renderLoopState();
+        if (logMessage) {
+          log("???????");
+        }
+      }
+    }
+
+    function startAutostep() {
+      pullInputState();
+      requireSimulationId();
+      if (state.presetRunning) {
+        throw new Error("?????????????????????");
+      }
+      state.renderMode = "live";
+      setDisplayBadge("????", "info");
+      if (state.autostepTimer) {
+        clearInterval(state.autostepTimer);
+      }
+      state.autostepTimer = window.setInterval(() => {
+        withGuard(() => stepSimulation(state.autostepBatch, true), true);
+      }, state.autostepMs);
+      renderLoopState();
+      log("???????", {interval_ms: state.autostepMs, batch: state.autostepBatch});
+    }
+
+    function setPresetInfo(message) {
+      byId("presetInfo").textContent = message;
+    }
+
+    function delay(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    function stopPreset(logMessage = true) {
+      if (!state.presetRunning) {
+        setPresetInfo("???????");
+        if (logMessage) {
+          log("???????????");
+        }
+        return;
+      }
+      state.presetCancel = true;
+      setPresetInfo(`?????${state.presetName}`);
+      if (logMessage) {
+        log(`????????${state.presetName}`);
+      }
+    }
+
+    function ensurePresetActive() {
+      if (state.presetCancel) {
+        throw new Error("__PRESET_CANCELLED__");
+      }
+    }
+
+    function beginPreset(name) {
+      if (state.presetRunning) {
+        throw new Error(`?????????${state.presetName}`);
+      }
+      stopAutostep(false);
+      state.presetRunning = true;
+      state.presetCancel = false;
+      state.presetName = name;
+      state.renderMode = "live";
+      setDisplayBadge("????", "info");
+      setPresetInfo(`????${name}`);
+      log(`?????${name}`);
+    }
+
+    function finishPreset(name, message) {
+      state.presetRunning = false;
+      state.presetCancel = false;
+      state.presetName = "";
+      setPresetInfo(message || `?????${name}`);
+    }
+
+    async function runPresetStep(label, action, pauseMs = 700) {
+      ensurePresetActive();
+      log(`?????${label}`);
+      await action();
+      ensurePresetActive();
+      if (pauseMs > 0) {
+        await delay(pauseMs);
+      }
+      ensurePresetActive();
+    }
+
+    function snapshotHistoryToReplay(logMessage = true) {
+      if (!state.history.length) {
+        throw new Error("??????????????");
+      }
+      state.replayData = {
+        history: state.history.map((point) => JSON.parse(JSON.stringify(point))),
+        simulationId: state.simulationId,
+      };
+      state.replayIndex = state.replayData.history.length - 1;
+      updateReplayControls();
+      if (logMessage) {
+        log("??????????", {points: state.replayData.history.length});
+      }
+    }
+
+    async function runPreset(name, executor) {
+      beginPreset(name);
+      try {
+        await executor();
+        snapshotHistoryToReplay(false);
+        renderReplayPoint((state.replayData?.history?.length || 1) - 1);
+        finishPreset(name, `?????${name}`);
+      } catch (error) {
+        if (error.message === "__PRESET_CANCELLED__") {
+          finishPreset(name, `??????${name}`);
+          if (state.lastStatus) {
+            renderStatus(state.lastStatus);
+          }
+          log(`??????${name}`);
+          return;
+        }
+        finishPreset(name, `?????${name}`);
+        throw error;
+      }
+    }
+
+    async function runTourPreset() {
+      await runPreset("????", async () => {
+        byId("scenarioSelect").value = "steady";
+        byId("coagulantDose").value = "6.0";
+        byId("aerationMa").value = "12.0";
+        byId("faultSensor").value = "turbidity";
+        byId("faultMode").value = "stuck";
+        byId("faultValue").value = "42.0";
+        await runPresetStep("?? steady ??", () => startSimulation(), 800);
+        await runPresetStep("??????", () => setControl(), 500);
+        await runPresetStep("???? 3 ?", () => stepSimulation(3, true), 700);
+        await runPresetStep("??? turbidity_spike", () => setScenario("turbidity_spike"), 700);
+        await runPresetStep("?????? 4 ?", () => stepSimulation(4, true), 700);
+        await runPresetStep("?? turbidity stuck=42", () => injectFault(), 700);
+        await runPresetStep("????? 2 ?", () => stepSimulation(2, true), 700);
+        await runPresetStep("????", () => clearFault(), 500);
+      });
+    }
+
+    async function runDisturbancePreset() {
+      await runPreset("????", async () => {
+        byId("scenarioSelect").value = "oxygen_sag";
+        byId("coagulantDose").value = "5.2";
+        byId("aerationMa").value = "14.5";
+        await runPresetStep("?? oxygen_sag ??", () => startSimulation(), 800);
+        await runPresetStep("???????", () => setControl(), 500);
+        await runPresetStep("?????? 4 ?", () => stepSimulation(4, true), 700);
+        await runPresetStep("??? cyclic_load", () => setScenario("cyclic_load"), 700);
+        await runPresetStep("?????? 5 ?", () => stepSimulation(5, true), 700);
+      });
+    }
+
+    async function runFaultPreset() {
+      await runPreset("????", async () => {
+        byId("scenarioSelect").value = "steady";
+        byId("coagulantDose").value = "6.5";
+        byId("aerationMa").value = "11.0";
+        byId("faultSensor").value = "dissolved_oxygen";
+        byId("faultMode").value = "bias";
+        byId("faultBias").value = "-1.2";
+        await runPresetStep("?? steady ??", () => startSimulation(), 800);
+        await runPresetStep("????", () => setControl(), 500);
+        await runPresetStep("???? 2 ?", () => stepSimulation(2, true), 700);
+        await runPresetStep("?? DO bias=-1.2", () => injectFault(), 700);
+        await runPresetStep("????? 3 ?", () => stepSimulation(3, true), 700);
+        await runPresetStep("?? dropout ??", async () => {
+          byId("faultMode").value = "dropout";
+          byId("faultValue").value = "0";
+          await injectFault();
+        }, 700);
+        await runPresetStep("? dropout ?? 2 ?", () => stepSimulation(2, true), 700);
+        await runPresetStep("????", () => clearFault(), 500);
+      });
+    }
+
+    function buildPointFromPayload(payload) {
+      const data = payload?.data || payload || {};
+      const snapshot = data.latest_snapshot || {};
+      const measured = snapshot.measured_quality || {};
+      const truth = snapshot.true_quality || {};
+      const sensorCurrents = snapshot.sensor_currents_ma || {};
+      const actuatorOutputs = snapshot.actuator_outputs || {};
+      const diagnostics = snapshot.diagnostics || {};
+      return {
+        source: "live",
+        status: data.status || "-",
+        scenario: data.scenario || snapshot.scenario || "-",
+        currentStep: Number(data.current_step ?? snapshot.step_index ?? 0),
+        updatedAt: data.updated_at || snapshot.timestamp || "-",
+        simulationId: data.simulation_id || state.simulationId || "",
+        measured,
+        truth,
+        sensorCurrents,
+        actuatorOutputs,
+        diagnostics,
+        snapshot,
+      };
+    }
+
+    function appendHistory(payload) {
+      const point = buildPointFromPayload(payload);
+      if (!point.snapshot || point.snapshot.step_index === undefined) {
+        return;
+      }
+      const existing = state.history[state.history.length - 1];
+      if (existing && existing.currentStep === point.currentStep) {
+        state.history[state.history.length - 1] = point;
+      } else {
+        state.history.push(point);
+      }
+      if (state.history.length > state.historyLimit) {
+        state.history = state.history.slice(-state.historyLimit);
+      }
+      renderLoopState();
+    }
+
+
+    function getDisplayHistory() {
+      if (state.renderMode === "replay" && state.replayData?.history?.length) {
+        return state.replayData.history;
+      }
+      return state.history;
+    }
+
+    function getSummaryStats(history) {
+      const measuredPoints = history.filter((point) => Number.isFinite(Number(point.measured?.turbidity)) || Number.isFinite(Number(point.measured?.dissolved_oxygen)));
+      const faultPoints = history.filter((point) => Number(point.diagnostics?.sensor_fault_detected || 0) > 0);
+      const peakTurbidityPoint = history.reduce((best, point) => {
+        const value = Number(point.measured?.turbidity);
+        if (!Number.isFinite(value)) {
+          return best;
+        }
+        if (!best || value > best.value) {
+          return {value, step: point.currentStep};
+        }
+        return best;
+      }, null);
+      const minDoPoint = history.reduce((best, point) => {
+        const value = Number(point.measured?.dissolved_oxygen);
+        if (!Number.isFinite(value)) {
+          return best;
+        }
+        if (!best || value < best.value) {
+          return {value, step: point.currentStep};
+        }
+        return best;
+      }, null);
+      return {
+        sampleCount: measuredPoints.length,
+        peakTurbidityPoint,
+        minDoPoint,
+        firstFaultStep: faultPoints.length ? faultPoints[0].currentStep : null,
+        faultCount: faultPoints.length,
+      };
+    }
+
+    function renderSummary() {
+      const history = getDisplayHistory();
+      const stats = getSummaryStats(history);
+      byId("sumSamples").textContent = String(stats.sampleCount || 0);
+      byId("sumMode").textContent = state.renderMode === "replay" ? "????" : "????";
+      byId("sumPeakTurbidity").textContent = stats.peakTurbidityPoint ? formatNumber(stats.peakTurbidityPoint.value) : "-";
+      byId("sumPeakStep").textContent = stats.peakTurbidityPoint ? `step ${stats.peakTurbidityPoint.step}` : "step -";
+      byId("sumMinDo").textContent = stats.minDoPoint ? formatNumber(stats.minDoPoint.value) : "-";
+      byId("sumMinDoStep").textContent = stats.minDoPoint ? `step ${stats.minDoPoint.step}` : "step -";
+      byId("sumFaultStep").textContent = stats.firstFaultStep ?? "-";
+      byId("sumFaultCount").textContent = `???? ${stats.faultCount}`;
+    }
+
+    function getOptimizationWeights() {
+      return {
+        avg_turbidity: Number(byId("optWeightTurbidity").value),
+        peak_turbidity: Number(byId("optWeightPeak").value),
+        do_error: Number(byId("optWeightDo").value),
+        chemical_cost: Number(byId("optWeightChemical").value),
+        aeration_cost: Number(byId("optWeightAeration").value),
+        fault_penalty: Number(byId("optWeightFault").value),
+      };
+    }
+
+    function downloadBlob(text, filename, type = "application/json") {
+      const blob = new Blob([text], {type});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function buildOptimizationCsvRows(result) {
+      const rows = result?.top_results || [];
+      return rows.map((item) => ({
+        rank: item.rank ?? "",
+        score: item.score ?? "",
+        coagulant_dose: item.candidate?.coagulant_dose ?? "",
+        aeration_rate: item.candidate?.aeration_rate ?? "",
+        avg_true_turbidity: item.summary?.avg_true_turbidity ?? "",
+        peak_true_turbidity: item.summary?.peak_true_turbidity ?? "",
+        peak_turbidity_step: item.summary?.peak_turbidity_step ?? "",
+        avg_true_do: item.summary?.avg_true_do ?? "",
+        min_true_do: item.summary?.min_true_do ?? "",
+        min_do_step: item.summary?.min_do_step ?? "",
+        avg_abs_do_error: item.summary?.avg_abs_do_error ?? "",
+        fault_count: item.summary?.fault_count ?? "",
+        first_fault_step: item.summary?.first_fault_step ?? "",
+      }));
+    }
+
+    function exportOptimizationJson() {
+      if (!state.optimizationResult?.top_results?.length) {
+        throw new Error("????????????");
+      }
+      const suffix = new Date().toISOString().replace(/[:.]/g, "-");
+      downloadBlob(
+        JSON.stringify(state.optimizationResult, null, 2),
+        `hil-optimization-${suffix}.json`,
+        "application/json"
+      );
+      log("???????? JSON", {
+        candidates: state.optimizationResult?.grid?.candidate_count || 0,
+      });
+    }
+
+    function exportOptimizationCsv() {
+      if (!state.optimizationResult?.top_results?.length) {
+        throw new Error("????????????");
+      }
+      const rows = buildOptimizationCsvRows(state.optimizationResult);
+      const headers = Object.keys(rows[0] || {});
+      const csv = [headers.join(",")]
+        .concat(rows.map((row) => headers.map((key) => JSON.stringify(row[key] ?? "")).join(",")))
+        .join("\n");
+      const suffix = new Date().toISOString().replace(/[:.]/g, "-");
+      downloadBlob(csv, `hil-optimization-${suffix}.csv`, "text/csv;charset=utf-8");
+      log("???????? CSV", {rows: rows.length});
+    }
+
+    function renderOptimizationResults(result = null) {
+      const best = result?.best_result;
+      const weights = result?.weights || null;
+      byId("optBestScore").textContent = best ? formatNumber(best.score, 4) : "-";
+      byId("optCandidateCount").textContent = `??? ${result?.grid?.candidate_count ?? 0}`;
+      byId("optBestDose").textContent = best ? formatNumber(best.candidate?.coagulant_dose, 3) : "-";
+      byId("optBestAeration").textContent = best ? formatNumber(best.candidate?.aeration_rate, 3) : "-";
+      byId("optScenario").textContent = result?.scenario || "-";
+      byId("optStepsInfo").textContent = weights
+        ? `steps ${result?.steps ?? '-'} ? wT ${formatNumber(weights.avg_turbidity, 2)} ? wDO ${formatNumber(weights.do_error, 2)}`
+        : `steps ${result?.steps ?? '-'}`;
+      byId("optBestDoseSummary").textContent = best ? `???? ${formatNumber(best.summary?.peak_true_turbidity)}` : "coagulant_dose";
+      byId("optBestAerationSummary").textContent = best ? `?? DO ${formatNumber(best.summary?.min_true_do)}` : "aeration_rate";
+      byId("optimizationView").textContent = JSON.stringify(result?.top_results || [], null, 2);
+    }
+
+    function createSvgElement(tag, attrs) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+      return node;
+    }
+
+    function buildPath(points, minValue, maxValue, width, height, padding) {
+      if (points.length === 0) {
+        return "";
+      }
+      const innerWidth = width - padding * 2;
+      const innerHeight = height - padding * 2;
+      const range = maxValue - minValue || 1;
+      return points.map((value, index) => {
+        const x = padding + (points.length === 1 ? innerWidth / 2 : (index / (points.length - 1)) * innerWidth);
+        const y = padding + innerHeight - ((value - minValue) / range) * innerHeight;
+        return `${index === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+      }).join(" ");
+    }
+
+    function renderLineChart(svgId, metaId, seriesList) {
+      const svg = byId(svgId);
+      const width = 420;
+      const height = 200;
+      const padding = 18;
+      svg.innerHTML = "";
+
+      const allValues = seriesList.flatMap((series) => series.values).filter((value) => Number.isFinite(value));
+      if (!allValues.length) {
+        byId(metaId).textContent = "暂无可绘制数据";
+        return;
+      }
+
+      let minValue = Math.min(...allValues);
+      let maxValue = Math.max(...allValues);
+      if (minValue === maxValue) {
+        minValue -= 1;
+        maxValue += 1;
+      }
+      const span = maxValue - minValue;
+      minValue -= span * 0.08;
+      maxValue += span * 0.08;
+
+      svg.appendChild(createSvgElement("rect", {
+        x: 0,
+        y: 0,
+        width,
+        height,
+        rx: 10,
+        ry: 10,
+        fill: "#0d1427",
+      }));
+
+      for (let index = 0; index < 4; index += 1) {
+        const y = padding + ((height - padding * 2) / 3) * index;
+        svg.appendChild(createSvgElement("line", {
+          x1: padding,
+          y1: y,
+          x2: width - padding,
+          y2: y,
+          stroke: "rgba(255,255,255,0.10)",
+          "stroke-width": 1,
+        }));
+      }
+
+      seriesList.forEach((series) => {
+        const pathData = buildPath(series.values, minValue, maxValue, width, height, padding);
+        if (!pathData) {
+          return;
+        }
+        svg.appendChild(createSvgElement("path", {
+          d: pathData,
+          fill: "none",
+          stroke: series.color,
+          "stroke-width": 3,
+          "stroke-linejoin": "round",
+          "stroke-linecap": "round",
+        }));
+      });
+
+      const latest = seriesList.map((series) => `${series.label}=${formatNumber(series.values.at(-1))}`).join(" · ");
+      byId(metaId).textContent = `范围 ${formatNumber(minValue)} ~ ${formatNumber(maxValue)} · ${latest}`;
+    }
+
+    function renderCharts() {
+      const history = getDisplayHistory();
+      renderLineChart("chartTurbidity", "chartMetaTurbidity", [
+        {label: "????", color: "#4dc3ff", values: history.map((point) => Number(point.measured?.turbidity))},
+        {label: "????", color: "#ffd166", values: history.map((point) => Number(point.truth?.turbidity))},
+      ]);
+      renderLineChart("chartDo", "chartMetaDo", [
+        {label: "?? DO", color: "#6ef0b2", values: history.map((point) => Number(point.measured?.dissolved_oxygen))},
+        {label: "?? DO", color: "#ff6b81", values: history.map((point) => Number(point.truth?.dissolved_oxygen))},
+      ]);
+      byId("mHistoryCount").textContent = `history: ${history.length}`;
+      byId("recordingInfo").textContent = `???? ${history.length}`;
+      renderSummary();
+    }
+
+    function renderPoint(point, modeText = "????") {
+      const measured = point.measured || {};
+      const truth = point.truth || {};
+      const sensorCurrents = point.sensorCurrents || {};
+      const actuatorOutputs = point.actuatorOutputs || {};
+      const diagnostics = point.diagnostics || {};
+
+      byId("mStatus").textContent = point.status || "-";
+      byId("mUpdatedAt").textContent = point.updatedAt || point.snapshot?.timestamp || "-";
+      byId("mScenario").textContent = point.scenario || point.snapshot?.scenario || "-";
+      byId("mSimulationId").textContent = point.simulationId || "-";
+      byId("mStep").textContent = point.currentStep ?? point.snapshot?.step_index ?? "-";
+      byId("mFault").textContent = diagnostics.sensor_fault_detected ? "?????" : "??";
+      byId("mTurbidity").textContent = formatNumber(measured.turbidity);
+      byId("mDo").textContent = formatNumber(measured.dissolved_oxygen);
+      byId("mTrueTurbidity").textContent = formatNumber(truth.turbidity);
+      byId("mTrueDo").textContent = formatNumber(truth.dissolved_oxygen);
+      byId("mTurbidityCurrent").textContent = `4-20mA: ${formatNumber(sensorCurrents.turbidity)}`;
+      byId("mDoCurrent").textContent = `4-20mA: ${formatNumber(sensorCurrents.dissolved_oxygen)}`;
+      byId("mDoseCmd").textContent = `??: ${formatNumber(actuatorOutputs.coagulant_dose)}`;
+      byId("mAerationCmd").textContent = `??: ${formatNumber(actuatorOutputs.aeration_rate)}`;
+      byId("snapshotView").textContent = JSON.stringify(point.snapshot || {}, null, 2);
+      setDisplayBadge(modeText, state.renderMode === "replay" ? "warn" : "info");
+      renderLoopState();
+    }
+
+    function renderStatus(payload) {
+      state.renderMode = "live";
+      state.lastStatus = payload;
+      appendHistory(payload);
+      renderCharts();
+      renderPoint(buildPointFromPayload(payload), "????");
+      const data = payload?.data || {};
+      const badgeClass = data.status === "running" ? "running" : data.status ? "warn" : "";
+      setRunBadge(data.status ? `?? ${data.status}` : "???", badgeClass);
+      if (state.replayData) {
+        updateReplayControls();
+      }
+    }
+
+    function updateReplayControls() {
+      const history = state.replayData?.history || [];
+      const slider = byId("replaySlider");
+      slider.max = history.length ? String(history.length - 1) : "0";
+      slider.value = history.length ? String(state.replayIndex) : "0";
+      slider.disabled = !history.length;
+      byId("replayPrevBtn").disabled = !history.length;
+      byId("replayNextBtn").disabled = !history.length;
+      byId("replayLatestBtn").disabled = !history.length;
+      byId("exitReplayBtn").disabled = state.renderMode !== "replay";
+      if (!history.length) {
+        byId("replayInfo").textContent = "???????";
+        return;
+      }
+      const point = history[state.replayIndex];
+      byId("replayInfo").textContent = `?? ${state.replayIndex + 1}/${history.length} ? step ${point.currentStep}`;
+    }
+
+    function renderReplayPoint(index) {
+      const history = state.replayData?.history || [];
+      if (!history.length) {
+        throw new Error("????????????");
+      }
+      state.renderMode = "replay";
+      state.replayIndex = Math.min(Math.max(index, 0), history.length - 1);
+      stopAutostep(false);
+      setPolling(false);
+      renderCharts();
+      renderPoint(history[state.replayIndex], `???? ${state.replayIndex + 1}/${history.length}`);
+      updateReplayControls();
+      setRunBadge("????", "warn");
+    }
+
+    function exitReplayMode() {
+      state.renderMode = "live";
+      updateReplayControls();
+      if (state.lastStatus) {
+        renderStatus(state.lastStatus);
+      } else {
+        renderCharts();
+        setDisplayBadge("????", "info");
+      }
+      setPolling(byId("pollToggle").checked);
+      log("???????");
+    }
+
+    function exportRecording() {
+      if (!state.history.length) {
+        throw new Error("?????????????");
+      }
+      const payload = {
+        exported_at: new Date().toISOString(),
+        base_url: state.baseUrl,
+        simulation_id: state.simulationId,
+        history: state.history,
+        latest_status: state.lastStatus,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const suffix = state.simulationId ? state.simulationId.slice(0, 8) : new Date().toISOString().replace(/[:.]/g, "-");
+      link.href = url;
+      link.download = `hil-recording-${suffix}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      log("?????", {points: state.history.length, simulation_id: state.simulationId});
+    }
+
+    async function importRecording(file) {
+      if (!file) {
+        return;
+      }
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      if (!Array.isArray(payload.history) || !payload.history.length) {
+        throw new Error("?????? history ??");
+      }
+      state.replayData = {
+        history: payload.history,
+        simulationId: payload.simulation_id || "",
+      };
+      state.replayIndex = payload.history.length - 1;
+      updateReplayControls();
+      renderReplayPoint(state.replayIndex);
+      log("?????", {points: payload.history.length, simulation_id: payload.simulation_id || null});
+    }
+
+    async function doLogin() {
+      const payload = await api("/api/auth/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          username: byId("username").value,
+          password: byId("password").value,
+        }),
+      });
+      state.token = payload.data.token;
+      syncInputs();
+      persist();
+      log("登录成功", {user: payload.data.user});
+    }
+
+    async function checkHealth() {
+      const payload = await api("/api/health");
+      setRunBadge("API 健康", "running");
+      log("健康检查成功", payload);
+    }
+
+    async function loadScenarios() {
+      const payload = await api("/api/hil/scenarios", {headers: authHeaders()});
+      const select = byId("scenarioSelect");
+      select.innerHTML = "";
+      for (const name of payload.data.scenarios) {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      }
+      log("场景列表已更新", payload.data);
+    }
+
+    async function startSimulation() {
+      const payload = await api("/api/hil/start", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({
+          scenario: byId("scenarioSelect").value,
+          dt_s: Number(byId("dtValue").value),
+          random_seed: 7,
+        }),
+      });
+      state.simulationId = payload.data.simulation_id;
+      state.history = [];
+      state.replayData = null;
+      state.replayIndex = 0;
+      syncInputs();
+      persist();
+      updateReplayControls();
+      renderStatus(payload);
+      setPolling(byId("pollToggle").checked);
+      log("HIL ?????", payload.data);
+    }
+
+    async function refreshStatus(silent = false) {
+      const simulationId = requireSimulationId();
+      const payload = await api(`/api/hil/${simulationId}/status`, {headers: authHeaders()});
+      renderStatus(payload);
+      if (!silent) {
+        log("状态已刷新", {step: payload.data.current_step, scenario: payload.data.scenario});
+      }
+    }
+
+    async function stepSimulation(steps, silent = false) {
+      if (state.isStepInFlight) {
+        return;
+      }
+      state.isStepInFlight = true;
+      try {
+        const simulationId = requireSimulationId();
+        const payload = await api(`/api/hil/${simulationId}/step`, {
+          method: "POST",
+          headers: authHeaders(true),
+          body: JSON.stringify({steps}),
+        });
+        renderStatus(payload);
+        if (!silent) {
+          log(`??? ${steps} ?`, payload.data || payload);
+        }
+      } catch (error) {
+        stopAutostep(false);
+        throw error;
+      } finally {
+        state.isStepInFlight = false;
+      }
+    }
+
+    async function setControl() {
+      const simulationId = requireSimulationId();
+      const payload = await api(`/api/hil/${simulationId}/control`, {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({
+          coagulant_dose: Number(byId("coagulantDose").value),
+          aeration_rate_ma: Number(byId("aerationMa").value),
+        }),
+      });
+      log("控制量已下发", payload.data);
+    }
+
+    async function setScenario(name) {
+      const simulationId = requireSimulationId();
+      const payload = await api(`/api/hil/${simulationId}/scenario`, {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({scenario_name: name}),
+      });
+      renderStatus(payload);
+      log("场景已切换", payload.data);
+    }
+
+    async function injectFault() {
+      const simulationId = requireSimulationId();
+      const mode = byId("faultMode").value;
+      const body = {
+        sensor_name: byId("faultSensor").value,
+        mode,
+      };
+      if (mode === "stuck" || mode === "dropout") {
+        body.value = Number(byId("faultValue").value);
+      }
+      if (mode === "bias") {
+        body.bias = Number(byId("faultBias").value);
+      }
+      const payload = await api(`/api/hil/${simulationId}/fault`, {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify(body),
+      });
+      log("故障已注入", payload.data);
+      await refreshStatus(true);
+    }
+
+    async function clearFault() {
+      const simulationId = requireSimulationId();
+      const sensorName = byId("faultSensor").value;
+      const payload = await api(`/api/hil/${simulationId}/fault/${sensorName}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      log("故障已清除", payload.data);
+      await refreshStatus(true);
+    }
+
+    async function runOptimization() {
+      const payload = await api("/api/hil/optimize", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({
+          scenario: byId("scenarioSelect").value,
+          dt_s: Number(byId("dtValue").value),
+          steps: Number(byId("optimizeSteps").value),
+          top_k: Number(byId("optTopK").value),
+          coagulant_min: Number(byId("optDoseMin").value),
+          coagulant_max: Number(byId("optDoseMax").value),
+          coagulant_step: Number(byId("optDoseStep").value),
+          aeration_min: Number(byId("optAerationMin").value),
+          aeration_max: Number(byId("optAerationMax").value),
+          aeration_step: Number(byId("optAerationStep").value),
+          weights: getOptimizationWeights(),
+          random_seed: 17,
+        }),
+      });
+      state.optimizationResult = payload.data;
+      renderOptimizationResults(payload.data);
+      log("HIL ????", payload.data.best_result || payload.data);
+    }
+
+    async function applyBestCandidate() {
+      const best = state.optimizationResult?.best_result?.candidate;
+      if (!best) {
+        throw new Error("请先运行优化，生成最佳参数候选");
+      }
+      byId("coagulantDose").value = String(best.coagulant_dose);
+      byId("aerationMa").value = String(best.aeration_rate);
+      if (byId("simulationId").value.trim()) {
+        await setControl();
+      }
+      log("已应用最佳参数", best);
+    }
+
+    function clearHistory() {
+      state.history = [];
+      state.replayData = null;
+      state.replayIndex = 0;
+      updateReplayControls();
+      renderCharts();
+      byId("chartMetaTurbidity").textContent = "?????";
+      byId("chartMetaDo").textContent = "?????";
+      byId("replayInfo").textContent = "???????";
+      log("???????");
+    }
+
+    async function withGuard(fn, silent = false) {
+      try {
+        await fn();
+      } catch (error) {
+        setRunBadge("请求失败", "error");
+        if (!silent) {
+          log("操作失败", {message: error.message});
+          alert(error.message);
+        }
+      }
+    }
+
+    byId("loginBtn").onclick = () => withGuard(doLogin);
+    byId("healthBtn").onclick = () => withGuard(checkHealth);
+    byId("scenarioBtn").onclick = () => withGuard(loadScenarios);
+    byId("startBtn").onclick = () => withGuard(startSimulation);
+    byId("statusBtn").onclick = () => withGuard(() => refreshStatus(false));
+    byId("stepBtn").onclick = () => withGuard(() => stepSimulation(1));
+    byId("step5Btn").onclick = () => withGuard(() => stepSimulation(5));
+    byId("controlBtn").onclick = () => withGuard(setControl);
+    byId("setSpikeBtn").onclick = () => withGuard(() => setScenario("turbidity_spike"));
+    byId("setOxygenBtn").onclick = () => withGuard(() => setScenario("oxygen_sag"));
+    byId("faultBtn").onclick = () => withGuard(injectFault);
+    byId("clearFaultBtn").onclick = () => withGuard(clearFault);
+    byId("clearHistoryBtn").onclick = clearHistory;
+    byId("autostepStartBtn").onclick = () => withGuard(async () => startAutostep());
+    byId("autostepStopBtn").onclick = () => stopAutostep();
+    byId("presetTourBtn").onclick = () => withGuard(runTourPreset);
+    byId("presetDisturbanceBtn").onclick = () => withGuard(runDisturbancePreset);
+    byId("presetFaultBtn").onclick = () => withGuard(runFaultPreset);
+    byId("presetStopBtn").onclick = () => stopPreset();
+    byId("runOptimizationBtn").onclick = () => withGuard(runOptimization);
+    byId("applyBestBtn").onclick = () => withGuard(applyBestCandidate);
+    byId("exportOptimizationJsonBtn").onclick = () => withGuard(async () => exportOptimizationJson());
+    byId("exportOptimizationCsvBtn").onclick = () => withGuard(async () => exportOptimizationCsv());
+    byId("exportBtn").onclick = () => withGuard(async () => exportRecording());
+    byId("exitReplayBtn").onclick = () => {
+      if (state.renderMode === "replay") {
+        exitReplayMode();
+      }
+    };
+    byId("replayPrevBtn").onclick = () => withGuard(async () => renderReplayPoint(state.replayIndex - 1));
+    byId("replayNextBtn").onclick = () => withGuard(async () => renderReplayPoint(state.replayIndex + 1));
+    byId("replayLatestBtn").onclick = () => withGuard(async () => renderReplayPoint((state.replayData?.history?.length || 1) - 1));
+    byId("replaySlider").oninput = () => {
+      if (state.replayData?.history?.length) {
+        withGuard(async () => renderReplayPoint(Number(byId("replaySlider").value)));
+      }
+    };
+    byId("importFile").onchange = (event) => {
+      const file = event.target.files?.[0];
+      withGuard(async () => importRecording(file));
+      event.target.value = "";
+    };
+    byId("pollToggle").onchange = () => {
+      pullInputState();
+      setPolling(byId("pollToggle").checked);
+    };
+    byId("pollInterval").onchange = () => {
+      pullInputState();
+      setPolling(byId("pollToggle").checked);
+    };
+    byId("historyLimit").onchange = () => {
+      pullInputState();
+      state.history = state.history.slice(-state.historyLimit);
+      renderCharts();
+      updateReplayControls();
+    };
+    byId("autostepMs").onchange = () => {
+      pullInputState();
+      if (state.autostepTimer) {
+        stopAutostep(false);
+        startAutostep();
+      } else {
+        renderLoopState();
+      }
+    };
+    byId("autostepBatch").onchange = () => {
+      pullInputState();
+      if (state.autostepTimer) {
+        stopAutostep(false);
+        startAutostep();
+      } else {
+        renderLoopState();
+      }
+    };
+
+    syncInputs();
+    renderCharts();
+    updateReplayControls();
+    renderOptimizationResults();
+    setPolling(state.autoRefresh);
+    renderLoopState();
+    setPresetInfo("???????");
+    log("???????????????? Token?");
+  </script>
+</body>
+</html>
+

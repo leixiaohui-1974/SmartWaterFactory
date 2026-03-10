@@ -15,11 +15,15 @@ import json
 import time
 import asyncio
 import threading
-from datetime import datetime, timedelta
+import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Any, Optional, Callable, Union
 from dataclasses import dataclass, asdict
 from pathlib import Path
 import logging
+
+from water_plant_controller.hil import DEFAULT_HIL_SCENARIOS, HILSimulator
+from water_plant_controller.models.water_quality import WaterQuality
 
 try:
     from flask import Flask, request, jsonify, Response
@@ -235,7 +239,7 @@ class AuthenticationManager:
             'username': username,
             'role': user.role,
             'permissions': user.permissions,
-            'exp': datetime.utcnow() + timedelta(hours=self.expiration_hours)
+            'exp': datetime.now(timezone.utc) + timedelta(hours=self.expiration_hours)
         }
         token = jwt.encode(payload, self.secret_key, algorithm='HS256')
 
@@ -270,12 +274,11 @@ class AuthenticationManager:
             return None
         
         try:
+            if token not in self.active_tokens:
+                return None
+
             payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
-            
-            # 更新最后使用时间
-            if token in self.active_tokens:
-                self.active_tokens[token]['last_used'] = datetime.now()
-            
+            self.active_tokens[token]['last_used'] = datetime.now()
             return payload
         except jwt.ExpiredSignatureError:
             # 清理过期token
@@ -387,6 +390,7 @@ class WaterPlantAPIServer:
         
         # WebSocket连接管理
         self.websocket_clients: Dict[str, Dict[str, Any]] = {}
+        self.hil_simulations: Dict[str, Dict[str, Any]] = {}
         
         # 注册路由
         self._register_routes()
@@ -416,6 +420,340 @@ class WaterPlantAPIServer:
     def _get_client_id(self) -> str:
         """获取客户端ID。"""
         return request.remote_addr or 'unknown'
+
+    def _ensure_hil_state(self) -> None:
+        if not hasattr(self, 'hil_simulations'):
+            self.hil_simulations = {}
+        if not hasattr(self, 'plant_data'):
+            self.plant_data = {'system_status': {}}
+        if 'system_status' not in self.plant_data:
+            self.plant_data['system_status'] = {}
+
+    def _sync_hil_system_status(self) -> None:
+        self._ensure_hil_state()
+        self.plant_data['system_status']['hil'] = {
+            'active_sessions': len(self.hil_simulations),
+            'available_scenarios': sorted(DEFAULT_HIL_SCENARIOS.keys()),
+            'last_updated': datetime.now().isoformat(),
+        }
+
+    def _require_hil_simulation(self, simulation_id: str) -> Dict[str, Any]:
+        self._ensure_hil_state()
+        if simulation_id not in self.hil_simulations:
+            raise KeyError(f'HIL simulation not found: {simulation_id}')
+        return self.hil_simulations[simulation_id]
+
+    def _serialize_hil_simulation(self, simulation_id: str) -> Dict[str, Any]:
+        state = self._require_hil_simulation(simulation_id)
+        simulator = state['simulator']
+        latest_snapshot = state['results'][-1] if state['results'] else None
+        return {
+            'simulation_id': simulation_id,
+            'status': state['status'],
+            'scenario': simulator.active_scenario,
+            'available_scenarios': sorted(simulator.scenarios.keys()),
+            'current_step': state['current_step'],
+            'results_count': len(state['results']),
+            'created_at': state['created_at'].isoformat(),
+            'updated_at': state['updated_at'].isoformat(),
+            'latest_snapshot': latest_snapshot,
+        }
+
+    def _start_hil_simulation(self, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        payload = data or {}
+        initial_quality = WaterQuality(
+            timestamp=datetime.now(),
+            ph=float(payload.get('initial_ph', 7.0)),
+            turbidity=float(payload.get('initial_turbidity', 25.0)),
+            dissolved_oxygen=float(payload.get('initial_dissolved_oxygen', 4.0)),
+        )
+        simulator = HILSimulator(
+            initial_quality,
+            dt_s=float(payload.get('dt_s', 1.0)),
+            scenario=payload.get('scenario', 'steady'),
+            random_seed=payload.get('random_seed'),
+        )
+
+        simulation_id = str(uuid.uuid4())
+        now = datetime.now()
+        self.hil_simulations[simulation_id] = {
+            'simulator': simulator,
+            'status': 'running',
+            'created_at': now,
+            'updated_at': now,
+            'current_step': 0,
+            'results': [],
+        }
+        self._sync_hil_system_status()
+        return self._serialize_hil_simulation(simulation_id)
+
+    def _step_hil_simulation(self, simulation_id: str, steps: int = 1) -> Dict[str, Any]:
+        if steps < 1:
+            raise ValueError('steps must be at least 1')
+
+        state = self._require_hil_simulation(simulation_id)
+        simulator = state['simulator']
+        snapshots = [simulator.step().to_dict() for _ in range(int(steps))]
+        state['results'].extend(snapshots)
+        state['current_step'] += int(steps)
+        state['updated_at'] = datetime.now()
+        self._sync_hil_system_status()
+        result = self._serialize_hil_simulation(simulation_id)
+        result['steps_executed'] = int(steps)
+        result['latest_snapshot'] = snapshots[-1]
+        return result
+
+    def _set_hil_scenario(self, simulation_id: str, scenario_name: str) -> Dict[str, Any]:
+        state = self._require_hil_simulation(simulation_id)
+        state['simulator'].set_scenario(scenario_name)
+        state['updated_at'] = datetime.now()
+        self._sync_hil_system_status()
+        return self._serialize_hil_simulation(simulation_id)
+
+    def _set_hil_control(self, simulation_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        state = self._require_hil_simulation(simulation_id)
+        simulator = state['simulator']
+        applied: Dict[str, float] = {}
+
+        for actuator_name in ('coagulant_dose', 'aeration_rate'):
+            if actuator_name in data:
+                simulator.set_control_command(actuator_name, float(data[actuator_name]))
+                applied[actuator_name] = float(data[actuator_name])
+
+            current_key = f'{actuator_name}_ma'
+            if current_key in data:
+                simulator.set_control_command_from_milliamps(actuator_name, float(data[current_key]))
+                applied[current_key] = float(data[current_key])
+
+        if not applied:
+            raise ValueError('At least one actuator command is required')
+
+        state['updated_at'] = datetime.now()
+        response = self._serialize_hil_simulation(simulation_id)
+        response['applied'] = applied
+        return response
+
+    def _inject_hil_fault(
+        self,
+        simulation_id: str,
+        sensor_name: str,
+        mode: str,
+        *,
+        value: Optional[float] = None,
+        bias: float = 0.0,
+    ) -> Dict[str, Any]:
+        state = self._require_hil_simulation(simulation_id)
+        state['simulator'].inject_sensor_fault(sensor_name, mode, value=value, bias=bias)
+        state['updated_at'] = datetime.now()
+        response = self._serialize_hil_simulation(simulation_id)
+        response['fault'] = {
+            'sensor_name': sensor_name,
+            'mode': mode,
+            'value': value,
+            'bias': bias,
+        }
+        return response
+
+    def _clear_hil_fault(self, simulation_id: str, sensor_name: str) -> Dict[str, Any]:
+        state = self._require_hil_simulation(simulation_id)
+        state['simulator'].clear_sensor_fault(sensor_name)
+        state['updated_at'] = datetime.now()
+        response = self._serialize_hil_simulation(simulation_id)
+        response['fault'] = {
+            'sensor_name': sensor_name,
+            'cleared': True,
+        }
+        return response
+
+    def _get_hil_status(self, simulation_id: str) -> Dict[str, Any]:
+        return self._serialize_hil_simulation(simulation_id)
+
+    def _list_hil_scenarios(self) -> Dict[str, Any]:
+        self._sync_hil_system_status()
+        return {
+            'scenarios': sorted(DEFAULT_HIL_SCENARIOS.keys()),
+            'active_sessions': len(self.hil_simulations),
+        }
+
+    def _build_hil_scan_values(self, minimum: float, maximum: float, step: float) -> List[float]:
+        if step <= 0:
+            raise ValueError('scan step must be positive')
+        if maximum < minimum:
+            raise ValueError('scan maximum must be greater than or equal to minimum')
+
+        values: List[float] = []
+        index = 0
+        while True:
+            value = minimum + step * index
+            if value > maximum + 1e-9:
+                break
+            values.append(round(value, 6))
+            index += 1
+        if not values:
+            values.append(round(minimum, 6))
+        return values
+
+    def _summarize_hil_history(self, history: List[Dict[str, Any]], do_target: float = 4.0) -> Dict[str, Any]:
+        if not history:
+            raise ValueError('HIL history is required for scoring')
+
+        true_turbidity_values: List[float] = []
+        true_do_values: List[float] = []
+        do_error_values: List[float] = []
+        fault_steps: List[int] = []
+        peak_turbidity_step: Optional[int] = None
+        min_do_step: Optional[int] = None
+        peak_turbidity = float('-inf')
+        min_do = float('inf')
+
+        for snapshot in history:
+            true_quality = snapshot.get('true_quality', {})
+            diagnostics = snapshot.get('diagnostics', {})
+            step_index = int(snapshot.get('step_index', 0))
+            turbidity = float(true_quality.get('turbidity', 0.0))
+            dissolved_oxygen = float(true_quality.get('dissolved_oxygen', 0.0))
+            true_turbidity_values.append(turbidity)
+            true_do_values.append(dissolved_oxygen)
+            do_error_values.append(abs(dissolved_oxygen - do_target))
+
+            if turbidity > peak_turbidity:
+                peak_turbidity = turbidity
+                peak_turbidity_step = step_index
+            if dissolved_oxygen < min_do:
+                min_do = dissolved_oxygen
+                min_do_step = step_index
+            if float(diagnostics.get('sensor_fault_detected', 0.0)) > 0:
+                fault_steps.append(step_index)
+
+        sample_count = len(history)
+        return {
+            'sample_count': sample_count,
+            'avg_true_turbidity': sum(true_turbidity_values) / sample_count,
+            'peak_true_turbidity': peak_turbidity,
+            'peak_turbidity_step': peak_turbidity_step,
+            'avg_true_do': sum(true_do_values) / sample_count,
+            'min_true_do': min_do,
+            'min_do_step': min_do_step,
+            'avg_abs_do_error': sum(do_error_values) / sample_count,
+            'fault_count': len(fault_steps),
+            'first_fault_step': fault_steps[0] if fault_steps else None,
+        }
+
+    def _score_hil_candidate(
+        self,
+        history: List[Dict[str, Any]],
+        *,
+        coagulant_dose: float,
+        aeration_rate: float,
+        do_target: float,
+        weights: Dict[str, float],
+    ) -> Dict[str, Any]:
+        summary = self._summarize_hil_history(history, do_target=do_target)
+        score = (
+            float(weights.get('avg_turbidity', 1.0)) * summary['avg_true_turbidity']
+            + float(weights.get('peak_turbidity', 0.35)) * summary['peak_true_turbidity']
+            + float(weights.get('do_error', 1.25)) * summary['avg_abs_do_error']
+            + float(weights.get('chemical_cost', 0.08)) * float(coagulant_dose)
+            + float(weights.get('aeration_cost', 0.03)) * float(aeration_rate)
+            + float(weights.get('fault_penalty', 2.0)) * summary['fault_count']
+        )
+        return {
+            'score': round(score, 6),
+            'summary': summary,
+        }
+
+    def _optimize_hil_controls(self, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        payload = data or {}
+        scenario = payload.get('scenario', 'steady')
+        steps = int(payload.get('steps', 8))
+        if steps < 1:
+            raise ValueError('steps must be at least 1')
+
+        dose_values = self._build_hil_scan_values(
+            float(payload.get('coagulant_min', 4.0)),
+            float(payload.get('coagulant_max', 8.0)),
+            float(payload.get('coagulant_step', 1.0)),
+        )
+        aeration_values = self._build_hil_scan_values(
+            float(payload.get('aeration_min', 8.0)),
+            float(payload.get('aeration_max', 14.0)),
+            float(payload.get('aeration_step', 2.0)),
+        )
+
+        top_k = max(1, int(payload.get('top_k', 5)))
+        do_target = float(payload.get('do_target', 4.0))
+        random_seed = payload.get('random_seed', 7)
+        dt_s = float(payload.get('dt_s', 1.0))
+        weights = payload.get('weights') or {}
+
+        candidates: List[Dict[str, Any]] = []
+        evaluation_index = 0
+        for coagulant_dose in dose_values:
+            for aeration_rate in aeration_values:
+                simulation_seed = None if random_seed is None else int(random_seed) + evaluation_index
+                started = self._start_hil_simulation({
+                    'scenario': scenario,
+                    'random_seed': simulation_seed,
+                    'dt_s': dt_s,
+                })
+                simulation_id = started['simulation_id']
+                try:
+                    self._set_hil_control(
+                        simulation_id,
+                        {
+                            'coagulant_dose': coagulant_dose,
+                            'aeration_rate': aeration_rate,
+                        },
+                    )
+                    self._step_hil_simulation(simulation_id, steps=steps)
+                    history = list(self.hil_simulations[simulation_id]['results'])
+                    scored = self._score_hil_candidate(
+                        history,
+                        coagulant_dose=coagulant_dose,
+                        aeration_rate=aeration_rate,
+                        do_target=do_target,
+                        weights=weights,
+                    )
+                    candidates.append({
+                        'candidate': {
+                            'coagulant_dose': coagulant_dose,
+                            'aeration_rate': aeration_rate,
+                        },
+                        'score': scored['score'],
+                        'summary': scored['summary'],
+                        'latest_snapshot': history[-1] if history else None,
+                    })
+                finally:
+                    self.hil_simulations.pop(simulation_id, None)
+                    self._sync_hil_system_status()
+                evaluation_index += 1
+
+        ranked = sorted(candidates, key=lambda item: item['score'])
+        for index, item in enumerate(ranked, start=1):
+            item['rank'] = index
+
+        best_result = ranked[0] if ranked else None
+        return {
+            'scenario': scenario,
+            'steps': steps,
+            'dt_s': dt_s,
+            'do_target': do_target,
+            'weights': {
+                'avg_turbidity': float(weights.get('avg_turbidity', 1.0)),
+                'peak_turbidity': float(weights.get('peak_turbidity', 0.35)),
+                'do_error': float(weights.get('do_error', 1.25)),
+                'chemical_cost': float(weights.get('chemical_cost', 0.08)),
+                'aeration_cost': float(weights.get('aeration_cost', 0.03)),
+                'fault_penalty': float(weights.get('fault_penalty', 2.0)),
+            },
+            'grid': {
+                'coagulant_dose_values': dose_values,
+                'aeration_rate_values': aeration_values,
+                'candidate_count': len(ranked),
+            },
+            'best_result': best_result,
+            'top_results': ranked[:top_k],
+        }
     
     def _check_rate_limit(self) -> Optional[Response]:
         """检查速率限制。"""
@@ -469,6 +807,15 @@ class WaterPlantAPIServer:
     def _register_routes(self):
         """注册API路由。"""
         
+        @self.app.route('/hil', methods=['GET'])
+        @self.app.route('/hil/dashboard', methods=['GET'])
+        def hil_dashboard():
+            """???? HIL ?????"""
+            dashboard_path = Path(__file__).resolve().parent.parent / 'examples' / '18_hil_demo' / 'rest_panel.html'
+            if not dashboard_path.exists():
+                return Response('HIL dashboard not found', status=404, mimetype='text/plain')
+            return Response(dashboard_path.read_text(encoding='utf-8'), mimetype='text/html')
+
         @self.app.route('/api/health', methods=['GET'])
         def health_check():
             """健康检查端点。"""
@@ -706,6 +1053,204 @@ class WaterPlantAPIServer:
                 message='Data exported successfully'
             )
             return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/scenarios', methods=['GET'])
+        def list_hil_scenarios():
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('read')
+            if auth_response:
+                return auth_response
+
+            response = APIResponse(
+                success=True,
+                data=self._list_hil_scenarios(),
+                message='HIL scenarios retrieved'
+            )
+            return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/start', methods=['POST'])
+        def start_hil_simulation():
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('control')
+            if auth_response:
+                return auth_response
+
+            try:
+                result = self._start_hil_simulation(request.get_json() or {})
+            except ValueError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='INVALID_HIL_CONFIG')
+                return jsonify(response.to_dict()), 400
+
+            response = APIResponse(success=True, data=result, message='HIL simulation started')
+            return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/<simulation_id>/status', methods=['GET'])
+        def get_hil_status(simulation_id: str):
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('read')
+            if auth_response:
+                return auth_response
+
+            try:
+                result = self._get_hil_status(simulation_id)
+            except KeyError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='HIL_NOT_FOUND')
+                return jsonify(response.to_dict()), 404
+
+            response = APIResponse(success=True, data=result, message='HIL status retrieved')
+            return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/<simulation_id>/step', methods=['POST'])
+        def step_hil_simulation(simulation_id: str):
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('control')
+            if auth_response:
+                return auth_response
+
+            payload = request.get_json() or {}
+            try:
+                result = self._step_hil_simulation(simulation_id, int(payload.get('steps', 1)))
+            except ValueError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='INVALID_HIL_STEP')
+                return jsonify(response.to_dict()), 400
+            except KeyError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='HIL_NOT_FOUND')
+                return jsonify(response.to_dict()), 404
+
+            response = APIResponse(success=True, data=result, message='HIL simulation advanced')
+            return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/<simulation_id>/scenario', methods=['POST'])
+        def set_hil_scenario(simulation_id: str):
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('control')
+            if auth_response:
+                return auth_response
+
+            payload = request.get_json() or {}
+            if 'scenario_name' not in payload:
+                response = APIResponse(success=False, message='scenario_name is required', error_code='NO_DATA')
+                return jsonify(response.to_dict()), 400
+
+            try:
+                result = self._set_hil_scenario(simulation_id, payload['scenario_name'])
+            except ValueError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='INVALID_HIL_SCENARIO')
+                return jsonify(response.to_dict()), 400
+            except KeyError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='HIL_NOT_FOUND')
+                return jsonify(response.to_dict()), 404
+
+            response = APIResponse(success=True, data=result, message='HIL scenario updated')
+            return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/<simulation_id>/control', methods=['POST'])
+        def set_hil_control(simulation_id: str):
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('control')
+            if auth_response:
+                return auth_response
+
+            try:
+                result = self._set_hil_control(simulation_id, request.get_json() or {})
+            except ValueError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='INVALID_HIL_CONTROL')
+                return jsonify(response.to_dict()), 400
+            except KeyError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='HIL_NOT_FOUND')
+                return jsonify(response.to_dict()), 404
+
+            response = APIResponse(success=True, data=result, message='HIL control updated')
+            return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/<simulation_id>/fault', methods=['POST'])
+        def inject_hil_fault(simulation_id: str):
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('control')
+            if auth_response:
+                return auth_response
+
+            payload = request.get_json() or {}
+            if 'sensor_name' not in payload or 'mode' not in payload:
+                response = APIResponse(success=False, message='sensor_name and mode are required', error_code='NO_DATA')
+                return jsonify(response.to_dict()), 400
+
+            try:
+                result = self._inject_hil_fault(
+                    simulation_id,
+                    payload['sensor_name'],
+                    payload['mode'],
+                    value=payload.get('value'),
+                    bias=float(payload.get('bias', 0.0)),
+                )
+            except ValueError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='INVALID_HIL_FAULT')
+                return jsonify(response.to_dict()), 400
+            except KeyError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='HIL_NOT_FOUND')
+                return jsonify(response.to_dict()), 404
+
+            response = APIResponse(success=True, data=result, message='HIL fault injected')
+            return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/optimize', methods=['POST'])
+        def optimize_hil_controls():
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('control')
+            if auth_response:
+                return auth_response
+
+            try:
+                result = self._optimize_hil_controls(request.get_json() or {})
+            except ValueError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='INVALID_HIL_OPTIMIZATION')
+                return jsonify(response.to_dict()), 400
+
+            response = APIResponse(success=True, data=result, message='HIL optimization completed')
+            return jsonify(response.to_dict())
+
+        @self.app.route('/api/hil/<simulation_id>/fault/<sensor_name>', methods=['DELETE'])
+        def clear_hil_fault(simulation_id: str, sensor_name: str):
+            rate_limit_response = self._check_rate_limit()
+            if rate_limit_response:
+                return rate_limit_response
+
+            auth_response = self._authenticate_request('control')
+            if auth_response:
+                return auth_response
+
+            try:
+                result = self._clear_hil_fault(simulation_id, sensor_name)
+            except KeyError as exc:
+                response = APIResponse(success=False, message=str(exc), error_code='HIL_NOT_FOUND')
+                return jsonify(response.to_dict()), 404
+
+            response = APIResponse(success=True, data=result, message='HIL fault cleared')
+            return jsonify(response.to_dict())
     
     def _register_websocket_events(self):
         """注册WebSocket事件。"""
@@ -814,7 +1359,13 @@ class WaterPlantAPIServer:
         self.logger.info(f"Starting Smart Water Factory API Server on {host}:{port}")
         
         if self.socketio:
-            self.socketio.run(self.app, host=host, port=port, debug=debug)
+            self.socketio.run(
+                self.app,
+                host=host,
+                port=port,
+                debug=debug,
+                allow_unsafe_werkzeug=True,
+            )
         else:
             self.app.run(host=host, port=port, debug=debug)
 

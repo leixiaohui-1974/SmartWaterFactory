@@ -1,0 +1,67 @@
+{
+  "workflow": [
+    {
+      "method": "tools/call",
+      "params": {
+        "name": "start_hil_simulation",
+        "arguments": {
+          "scenario": "steady",
+          "random_seed": 7,
+          "dt_s": 1.0
+        }
+      }
+    },
+    {
+      "method": "tools/call",
+      "params": {
+        "name": "set_hil_control",
+        "arguments": {
+          "simulation_id": "<SIM_ID>",
+          "coagulant_dose": 6.0,
+          "aeration_rate_ma": 12.0
+        }
+      }
+    },
+    {
+      "method": "tools/call",
+      "params": {
+        "name": "step_hil_simulation",
+        "arguments": {
+          "simulation_id": "<SIM_ID>",
+          "steps": 5
+        }
+      }
+    },
+    {
+      "method": "tools/call",
+      "params": {
+        "name": "inject_hil_fault",
+        "arguments": {
+          "simulation_id": "<SIM_ID>",
+          "sensor_name": "turbidity",
+          "mode": "stuck",
+          "value": 42.0
+        }
+      }
+    },
+    {
+      "method": "tools/call",
+      "params": {
+        "name": "step_hil_simulation",
+        "arguments": {
+          "simulation_id": "<SIM_ID>",
+          "steps": 2
+        }
+      }
+    },
+    {
+      "method": "tools/call",
+      "params": {
+        "name": "get_hil_simulation_status",
+        "arguments": {
+          "simulation_id": "<SIM_ID>"
+        }
+      }
+    }
+  ]
+}

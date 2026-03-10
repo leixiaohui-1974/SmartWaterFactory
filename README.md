@@ -84,6 +84,21 @@ To verify that the system is working correctly, you can run all the tests from t
 python3 -m unittest discover tests
 ```
 
+### 4. Running the HIL Demo
+To exercise the new hardware-in-the-loop scaffold from the command line, run:
+```bash
+python3 scripts/run_hil_demo.py --steps 10 --scenario steady --output outputs/hil_demo_summary.json
+```
+You can switch scenarios, override actuator commands, and inject a sensor fault:
+```bash
+python3 scripts/run_hil_demo.py --scenario turbidity_spike --coagulant-dose 6 --aeration-rate 10 --fault-sensor turbidity --fault-mode stuck --fault-value 42
+```
+The script writes a JSON summary containing all snapshots, the latest measurement, and the applied HIL settings.
+You can also run the REST end-to-end flow with `python3 scripts/run_hil_rest_e2e.py --output outputs/hil_rest_e2e_summary.json`, then open the built-in dashboard at `http://127.0.0.1:5000/hil/dashboard` (or `http://127.0.0.1:5056/hil/dashboard` if you use the e2e script defaults). The dashboard now supports auto-stepping, one-click demo presets, summary cards, a lightweight HIL optimization leaderboard, adjustable optimization weights, optimization result export to JSON/CSV, recording export, and JSON replay for demo review.
+
+For direct API-based multi-model collaboration, see `docs/AI_DIRECT_API_COLLAB.md` and route tasks with `python scripts/route_ai_task.py --task-type coding --risk medium --budget medium --stage implement --deadline urgent`.
+To execute a routed lead/reviewer flow directly, use `python scripts/orchestrate_model_flow.py --task-type coding --risk medium --budget medium --stage implement --deadline urgent --prompt "your task" --dry-run`. Each run can also archive a structured report under `outputs/ai_runs/`, including split artifacts such as `*.prompt_bundle.md`, `*.lead.md`, and `*.reviewer.md`.
+
 ## Examples and Tutorials
 
 This project includes a comprehensive set of examples that serve as a beginner-to-advanced development guide. You can find them in the `/examples` directory.

@@ -204,6 +204,10 @@ python tests/integration/test_full_system.py
 python tests/integration/test_api_endpoints.py
 ```
 
+## 新增示例
+
+- **[Example 18: HIL Demo Workflow](./18_hil_demo/README.md)**
+
 ## ⚙️ 配置管理
 
 ### 环境配置

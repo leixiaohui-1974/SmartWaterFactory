@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaMind·水智伴 | AI时代智慧水务本科生成长平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;600&display=swap');
+
+:root {
+  /* Palette: warm scholarly dark */
+  --ink:    #0d1117;
+  --ink2:   #111822;
+  --ink3:   #18222f;
+  --card:   #1a2535;
+  --card2:  #1f2d40;
+  --line:   #243347;
+  --line2:  #2e4060;
+  --gold:   #f0b429;
+  --gold2:  #ffd166;
+  --amber:  #e88c2a;
+  --sky:    #38bdf8;
+  --sky2:   #0ea5e9;
+  --mint:   #34d399;
+  --rose:   #fb7185;
+  --violet: #a78bfa;
+  --text:   #c8dff0;
+  --text2:  #7a9ab8;
+  --text3:  #3d5a78;
+  --white:  #eef4fa;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'Space Grotesk', 'Noto Serif SC', sans-serif;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+/* ────────── HERO ────────── */
+.hero {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 70% 60% at 15% 40%, rgba(56,189,248,.08) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 85% 20%, rgba(240,180,41,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 60% 90%, rgba(52,211,153,.04) 0%, transparent 60%),
+    linear-gradient(160deg, #080e17 0%, #0d1520 55%, #101b28 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle grid */
+.hero::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(56,189,248,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events:none;
+}
+
+/* floating water rings */
+.ring {
+  position:absolute;
+  border-radius:50%;
+  border: 1px solid rgba(56,189,248,.07);
+  animation: expand 8s ease-out infinite;
+}
+.ring:nth-child(1){ width:300px;height:300px; top:10%; left:5%; animation-delay:0s; }
+.ring:nth-child(2){ width:500px;height:500px; top:30%; right:2%; animation-delay:2s; }
+.ring:nth-child(3){ width:200px;height:200px; bottom:15%; left:30%; animation-delay:4s; }
+
+@keyframes expand {
+  0%  { transform:scale(1); opacity:.5; }
+  100%{ transform:scale(1.3); opacity:0; }
+}
+
+.hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  padding: 6px 18px;
+  border: 1px solid rgba(240,180,41,.25);
+  border-radius: 20px;
+  background: rgba(240,180,41,.05);
+}
+
+.hero-name {
+  font-size: 64px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #fff 30%, var(--sky) 60%, var(--gold) 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--text2);
+  text-align: center;
+  letter-spacing: 2px;
+  margin-bottom: 50px;
+}
+
+/* 4-pillar stats */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 700px;
+  width: 100%;
+  margin-bottom: 60px;
+  border: 1px solid var(--line2);
+}
+
+.stat-cell {
+  background: var(--card);
+  padding: 20px 24px;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-num span { color: var(--gold); font-size: 18px; }
+.stat-label {
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+
+/* 4-year journey visual */
+.journey-band {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  max-width: 860px;
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.year-block {
+  flex: 1;
+  padding: 18px 20px;
+  border-right: 1px solid var(--line);
+  position: relative;
+  cursor: default;
+}
+.year-block:last-child { border-right: none; }
+
+.year-block::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+}
+.year-block.y1::after { background: linear-gradient(90deg, var(--mint), transparent); }
+.year-block.y2::after { background: linear-gradient(90deg, var(--sky), transparent); }
+.year-block.y3::after { background: linear-gradient(90deg, var(--violet), transparent); }
+.year-block.y4::after { background: linear-gradient(90deg, var(--gold), transparent); }
+
+.year-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.y1 .year-tag { color: var(--mint); }
+.y2 .year-tag { color: var(--sky); }
+.y3 .year-tag { color: var(--violet); }
+.y4 .year-tag { color: var(--gold); }
+
+.year-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.year-role {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ────────── PAGE BODY ────────── */
+.page { max-width: 1080px; margin: 0 auto; padding: 70px 40px; }
+
+.sec { margin-bottom: 80px; }
+
+.sec-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 32px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line2);
+}
+
+.sec-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  padding: 4px 12px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+.sec-tag.gold { background:rgba(240,180,41,.1); color:var(--gold); border:1px solid rgba(240,180,41,.2); }
+.sec-tag.sky  { background:rgba(56,189,248,.1);  color:var(--sky);  border:1px solid rgba(56,189,248,.2); }
+.sec-tag.mint { background:rgba(52,211,153,.1);  color:var(--mint); border:1px solid rgba(52,211,153,.2); }
+.sec-tag.rose { background:rgba(251,113,133,.1); color:var(--rose); border:1px solid rgba(251,113,133,.2); }
+.sec-tag.violet { background:rgba(167,139,250,.1); color:var(--violet); border:1px solid rgba(167,139,250,.2); }
+
+.sec-title { font-size: 24px; font-weight: 700; color: var(--white); }
+
+/* ────────── PHILOSOPHY CARDS ────────── */
+.phi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.phi-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.phi-card::before {
+  content: attr(data-num);
+  position: absolute;
+  right: 16px; top: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: rgba(255,255,255,.03);
+  line-height: 1;
+}
+
+.phi-icon { font-size: 26px; margin-bottom: 12px; }
+.phi-title { font-size: 15px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+.phi-desc  { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+/* ────────── HARDWARE MINIMAL ────────── */
+.hw-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 20px;
+}
+
+.hw-panel {
+  background: var(--card);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.panel-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 16px;
+}
+
+/* micro reactor SVG */
+.reactor-svg-wrap {
+  background: var(--ink3);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+/* BOM table */
+.bom-table { width:100%; border-collapse:collapse; font-size:12px; }
+.bom-table th {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--text3); padding:8px 10px;
+  background: var(--ink3);
+  text-align:left;
+  border-bottom:1px solid var(--line);
+}
+.bom-table td {
+  padding:8px 10px;
+  border-bottom:1px solid var(--line);
+  color:var(--text2);
+  vertical-align: top;
+}
+.bom-table tr:last-child td { border-bottom:none; }
+.bom-table td:first-child { color:var(--text); font-weight:600; }
+.mono { font-family:'JetBrains Mono',monospace; color:var(--sky); font-size:11px; }
+.mono.gold { color:var(--gold); }
+.mono.mint { color:var(--mint); }
+.mono.rose { color:var(--rose); }
+
+/* ────────── EDGE BRAIN ────────── */
+.brain-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.brain-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 22px;
+}
+
+.brain-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.chip-icon {
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 18px;
+}
+.chip-icon.jetson { background: rgba(118,208,66,.12); border:1px solid rgba(118,208,66,.2); }
+.chip-icon.rpi    { background: rgba(200,60,60,.12);   border:1px solid rgba(200,60,60,.2); }
+.chip-icon.soft   { background: rgba(56,189,248,.12);  border:1px solid rgba(56,189,248,.2); }
+.chip-icon.cloud  { background: rgba(240,180,41,.12);  border:1px solid rgba(240,180,41,.2); }
+
+.chip-name  { font-size:14px; font-weight:700; color:var(--white); }
+.chip-price { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--gold); }
+
+.spec-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--line); font-size:12px; }
+.spec-row:last-child { border-bottom:none; }
+.spec-key { color:var(--text3); }
+.spec-val { font-family:'JetBrains Mono',monospace; color:var(--sky); font-size:11px; }
+
+/* ────────── 4-YEAR CURRICULUM ────────── */
+.curriculum-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.year-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.year-card-header {
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.year-card-header.y1 { background: linear-gradient(135deg, rgba(52,211,153,.12), rgba(52,211,153,.04)); border-bottom:1px solid rgba(52,211,153,.15); }
+.year-card-header.y2 { background: linear-gradient(135deg, rgba(56,189,248,.12), rgba(56,189,248,.04)); border-bottom:1px solid rgba(56,189,248,.15); }
+.year-card-header.y3 { background: linear-gradient(135deg, rgba(167,139,250,.12), rgba(167,139,250,.04)); border-bottom:1px solid rgba(167,139,250,.15); }
+.year-card-header.y4 { background: linear-gradient(135deg, rgba(240,180,41,.12), rgba(240,180,41,.04)); border-bottom:1px solid rgba(240,180,41,.15); }
+
+.year-badge {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 20px;
+  font-weight: 800;
+}
+.y1 .year-badge { background:rgba(52,211,153,.15); color:var(--mint); border:1px solid rgba(52,211,153,.3); }
+.y2 .year-badge { background:rgba(56,189,248,.15); color:var(--sky); border:1px solid rgba(56,189,248,.3); }
+.y3 .year-badge { background:rgba(167,139,250,.15); color:var(--violet); border:1px solid rgba(167,139,250,.3); }
+.y4 .year-badge { background:rgba(240,180,41,.15); color:var(--gold); border:1px solid rgba(240,180,41,.3); }
+
+.year-card-title { font-size:15px; font-weight:700; color:var(--white); }
+.year-card-motto { font-size:11px; color:var(--text3); margin-top:2px; }
+
+.year-card-body { padding: 20px 22px; }
+
+.module-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.module-item:last-child { border-bottom: none; }
+
+.module-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-top: 7px;
+  flex-shrink: 0;
+}
+.y1 .module-dot { background: var(--mint); }
+.y2 .module-dot { background: var(--sky); }
+.y3 .module-dot { background: var(--violet); }
+.y4 .module-dot { background: var(--gold); }
+
+.module-name { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
+.module-desc { font-size:11px; color:var(--text3); }
+
+.module-tag {
+  margin-left:auto;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; padding:2px 8px;
+  border-radius:10px;
+  white-space:nowrap;
+  align-self:flex-start;
+  margin-top:4px;
+}
+.tag-hw { background:rgba(251,113,133,.1); color:var(--rose); border:1px solid rgba(251,113,133,.2); }
+.tag-sw { background:rgba(56,189,248,.1); color:var(--sky); border:1px solid rgba(56,189,248,.2); }
+.tag-ai { background:rgba(167,139,250,.1); color:var(--violet); border:1px solid rgba(167,139,250,.2); }
+.tag-th { background:rgba(240,180,41,.1); color:var(--gold); border:1px solid rgba(240,180,41,.2); }
+
+/* ────────── AI SENSOR FUSION ────────── */
+.sensor-arch {
+  background: var(--card);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.sensor-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.sensor-chip {
+  background: var(--ink3);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.sensor-sym {
+  font-family:'JetBrains Mono',monospace;
+  font-size:16px; font-weight:600;
+  color:var(--sky);
+  margin-bottom:4px;
+}
+
+.sensor-name-sm { font-size:9px; color:var(--text3); }
+.sensor-price-sm {
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px; color:var(--gold);
+  margin-top:4px;
+}
+
+.arrow-row {
+  display:flex; justify-content:center; align-items:center;
+  gap:8px; margin-bottom:16px;
+}
+.arr-box {
+  font-size:11px; color:var(--text3);
+  font-family:'JetBrains Mono',monospace;
+}
+
+.ai-predict-box {
+  background: linear-gradient(135deg, rgba(167,139,250,.1), rgba(56,189,248,.08));
+  border: 1px solid rgba(167,139,250,.25);
+  border-radius: 8px;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.predict-item { text-align:center; }
+.predict-label { font-size:10px; color:var(--text3); margin-bottom:4px; }
+.predict-name { font-size:12px; color:var(--violet); font-weight:600; }
+.predict-method { font-size:10px; color:var(--text3); font-family:'JetBrains Mono',monospace; }
+
+/* ────────── SOFTWARE STACK ────────── */
+.stack-layer {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.stack-header {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 18px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px; font-weight:600;
+  letter-spacing:2px; text-transform:uppercase;
+}
+.stack-header.s1 { background:rgba(167,139,250,.1); color:var(--violet); border-bottom:1px solid rgba(167,139,250,.15); }
+.stack-header.s2 { background:rgba(56,189,248,.08); color:var(--sky);    border-bottom:1px solid rgba(56,189,248,.12); }
+.stack-header.s3 { background:rgba(52,211,153,.08); color:var(--mint);   border-bottom:1px solid rgba(52,211,153,.12); }
+.stack-header.s4 { background:rgba(240,180,41,.08); color:var(--gold);   border-bottom:1px solid rgba(240,180,41,.12); }
+.stack-header.s5 { background:rgba(251,113,133,.08); color:var(--rose);  border-bottom:1px solid rgba(251,113,133,.12); }
+
+.stack-body {
+  background: var(--ink3);
+  padding:14px 18px;
+}
+
+.stack-items {
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+
+.sitem {
+  font-size:11px;
+  padding:3px 10px;
+  border-radius:4px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--line2);
+  color:var(--text2);
+}
+
+/* ────────── ALGO BLOCK ────────── */
+.algo-card {
+  background: var(--ink3);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  padding: 22px;
+  margin-bottom: 16px;
+}
+
+.algo-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px;
+}
+
+.algo-name {
+  font-size:13px; font-weight:700; color:var(--white);
+}
+
+.algo-year-badge {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; padding:2px 10px;
+  border-radius:10px;
+  font-weight:600;
+}
+.yr1 { background:rgba(52,211,153,.12); color:var(--mint); }
+.yr2 { background:rgba(56,189,248,.12); color:var(--sky); }
+.yr3 { background:rgba(167,139,250,.12); color:var(--violet); }
+.yr4 { background:rgba(240,180,41,.12); color:var(--gold); }
+
+.code-block {
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:#7fdbca;
+  background:rgba(0,0,0,.4);
+  padding:14px 16px;
+  border-radius:4px;
+  white-space:pre;
+  line-height:1.9;
+  border-left: 3px solid var(--line2);
+  margin:10px 0;
+  overflow-x:auto;
+}
+
+.algo-note { font-size:11px; color:var(--text3); }
+
+/* ────────── GROWTH ROADMAP ────────── */
+.roadmap {
+  position:relative;
+  padding-left: 20px;
+}
+
+.roadmap::before {
+  content:'';
+  position:absolute; left:0; top:0; bottom:0;
+  width:2px;
+  background:linear-gradient(180deg,
+    var(--mint) 0%, var(--sky) 33%,
+    var(--violet) 66%, var(--gold) 100%);
+}
+
+.road-item {
+  position:relative;
+  padding:0 0 32px 28px;
+}
+
+.road-dot {
+  position:absolute;
+  left:-5px; top:4px;
+  width:12px; height:12px;
+  border-radius:50%;
+  border:2px solid var(--ink);
+}
+
+.road-phase {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px; letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.road-title { font-size:15px; font-weight:700; color:var(--white); margin-bottom:6px; }
+.road-tasks {
+  display:flex; flex-wrap:wrap; gap:6px;
+  margin-bottom:8px;
+}
+.road-task {
+  font-size:11px; padding:3px 10px;
+  border-radius:4px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line2);
+  color:var(--text2);
+}
+.road-outcome { font-size:12px; color:var(--text3); }
+
+/* ────────── COST BREAKDOWN ────────── */
+.cost-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:20px;
+}
+
+.cost-card {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:22px;
+}
+
+.cost-category {
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px; letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:14px;
+}
+
+.cost-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:7px 0;
+  border-bottom:1px solid var(--line);
+  font-size:12px;
+}
+.cost-item:last-child { border-bottom:none; }
+.cost-name { color:var(--text2); }
+.cost-val { font-family:'JetBrains Mono',monospace; color:var(--gold); font-size:11px; }
+
+.cost-total-band {
+  background:linear-gradient(135deg, rgba(240,180,41,.12), rgba(56,189,248,.08));
+  border:1px solid rgba(240,180,41,.2);
+  border-radius:8px;
+  padding:24px;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-top:20px;
+}
+
+.cost-total-label { font-size:16px; font-weight:600; color:var(--white); }
+.cost-total-note  { font-size:11px; color:var(--text3); margin-top:2px; }
+.cost-total-num {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:36px; font-weight:700;
+  color:var(--gold);
+}
+.cost-total-num small { font-size:16px; color:var(--amber); }
+
+/* ────────── vs OLD ────────── */
+.compare-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  margin-bottom:20px;
+}
+
+.compare-card {
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:22px;
+}
+
+.compare-card.old { border-color:rgba(251,113,133,.15); }
+.compare-card.new { border-color:rgba(52,211,153,.2); }
+
+.compare-label {
+  font-size:10px; letter-spacing:2px;
+  text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+  margin-bottom:14px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--line);
+}
+.compare-card.old .compare-label { color:var(--rose); }
+.compare-card.new .compare-label { color:var(--mint); }
+
+.compare-row {
+  display:flex; justify-content:space-between;
+  padding:6px 0;
+  font-size:12px;
+  border-bottom:1px dashed var(--line);
+}
+.compare-row:last-child { border-bottom:none; }
+.compare-key { color:var(--text3); }
+.compare-val-old { color:var(--rose); font-family:'JetBrains Mono',monospace; font-size:11px; }
+.compare-val-new { color:var(--mint); font-family:'JetBrains Mono',monospace; font-size:11px; }
+
+/* ────────── HYDROCLAW STUDENT ────────── */
+.hc-connect {
+  background:linear-gradient(135deg, rgba(56,189,248,.07), rgba(167,139,250,.07));
+  border:1px solid rgba(56,189,248,.18);
+  border-radius:10px;
+  padding:30px;
+}
+
+.hc-title {
+  font-size:18px; font-weight:700; color:var(--white);
+  margin-bottom:6px;
+}
+.hc-sub { font-size:12px; color:var(--text3); margin-bottom:24px; }
+
+.hc-feature-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+
+.hc-feat {
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--line2);
+  border-radius:6px;
+  padding:16px;
+}
+
+.hc-feat-icon { font-size:20px; margin-bottom:8px; }
+.hc-feat-name { font-size:12px; font-weight:700; color:var(--white); margin-bottom:4px; }
+.hc-feat-desc { font-size:11px; color:var(--text3); line-height:1.5; }
+
+/* ────────── INFO BOX ────────── */
+.ibox {
+  border-radius:6px;
+  padding:16px 20px;
+  margin-bottom:16px;
+  display:flex; gap:12px;
+  font-size:12px; color:var(--text2);
+}
+.ibox.blue { background:rgba(56,189,248,.06); border:1px solid rgba(56,189,248,.15); }
+.ibox.gold { background:rgba(240,180,41,.06); border:1px solid rgba(240,180,41,.15); }
+.ibox.mint { background:rgba(52,211,153,.06); border:1px solid rgba(52,211,153,.15); }
+.ibox-icon { font-size:16px; }
+
+/* ────────── FOOTER ────────── */
+footer {
+  border-top:1px solid var(--line);
+  background:var(--ink2);
+  padding:30px 60px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.footer-brand { font-size:14px; font-weight:600; color:var(--text3); }
+.footer-brand em { color:var(--gold); font-style:normal; }
+.footer-note { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text3); }
+</style>
+</head>
+<body>
+
+<!-- ========== HERO ========== -->
+<div class="hero">
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+
+  <div class="hero-eyebrow">CHS · Cybernetics of Hydro Systems · Education Edition</div>
+
+  <h1 class="hero-name">AquaMind · 水智伴</h1>
+  <p class="hero-sub">AI 时代智慧水务本科生全程成长平台</p>
+
+  <div class="hero-stats">
+    <div class="stat-cell">
+      <div class="stat-num">4<span>年</span></div>
+      <div class="stat-label">全程陪伴</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">3<span>万</span></div>
+      <div class="stat-label">含税总造价</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">AI<span>+</span></div>
+      <div class="stat-label">软件定义传感</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">可编程扩展</div>
+    </div>
+  </div>
+
+  <div class="journey-band">
+    <div class="year-block y1">
+      <div class="year-tag">Year 1 · 感知者</div>
+      <div class="year-title">观察 · 采集 · 标定</div>
+      <div class="year-role">水处理基础 + Python入门</div>
+    </div>
+    <div class="year-block y2">
+      <div class="year-tag">Year 2 · 建模者</div>
+      <div class="year-title">模型 · 控制 · 验证</div>
+      <div class="year-role">水力学模型 + PID控制</div>
+    </div>
+    <div class="year-block y3">
+      <div class="year-tag">Year 3 · 智造者</div>
+      <div class="year-title">预测 · AI · 孪生</div>
+      <div class="year-role">机器学习 + 数字孪生</div>
+    </div>
+    <div class="year-block y4">
+      <div class="year-tag">Year 4 · 自主者</div>
+      <div class="year-title">自主 · 优化 · 创新</div>
+      <div class="year-role">MPC · RL · HydroClaw毕设</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== BODY ========== -->
+<div class="page">
+
+  <!-- ── SECTION 0: PHILOSOPHY ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag gold">PHILOSOPHY</span>
+      <h2 class="sec-title">设计哲学：从工具到伙伴</h2>
+    </div>
+
+    <div class="ibox gold">
+      <span class="ibox-icon">💡</span>
+      <div>工业版方案花64万买了一套<strong>"学生只能看，不能改"</strong>的仪器。AquaMind的核心哲学是：<strong>把95%的价值从硬件转移到软件和算法</strong>——让边缘算力成为学生四年的AI伙伴，而不是展示柜里的展品。</div>
+    </div>
+
+    <div class="phi-grid">
+      <div class="phi-card" data-num="01">
+        <div class="phi-icon">🧠</div>
+        <div class="phi-title">软件定义传感</div>
+        <div class="phi-desc">只买便宜的基础传感器（DO/pH/浊度/温度），用AI神经网络预测贵重仪器才能测的指标——COD、氨氮、TP。学生亲手训练自己的水质预测模型，这比买一台哈希分析仪更有教育价值。</div>
+      </div>
+      <div class="phi-card" data-num="02">
+        <div class="phi-icon">📈</div>
+        <div class="phi-title">渐进式能力解锁</div>
+        <div class="phi-desc">一年级用实验台做实验，二年级写PID代码，三年级训练LSTM，四年级跑MPC做毕设。同一台装备，随着学生能力成长，可以解锁越来越高级的玩法——不是"用完就扔"的耗材。</div>
+      </div>
+      <div class="phi-card" data-num="03">
+        <div class="phi-icon">🔓</div>
+        <div class="phi-title">全栈开放可编程</div>
+        <div class="phi-desc">从Modbus传感器驱动、PLC梯形图、Python算法库、Grafana看板到HydroClaw Agent接口，全部开源可改。学生可以fork、重写、破坏、重建——这是最好的学习方式。</div>
+      </div>
+      <div class="phi-card" data-num="04">
+        <div class="phi-icon">🌐</div>
+        <div class="phi-title">真实世界接口</div>
+        <div class="phi-desc">AquaMind的数字孪生与真实HydroClaw水网大模型联通——学生在实验台上跑的算法，和雷老师课题组管的南水北调、胶东调水项目用同一套架构。从第一天起就是真实世界的一部分。</div>
+      </div>
+      <div class="phi-card" data-num="05">
+        <div class="phi-icon">💰</div>
+        <div class="phi-title">极致性价比</div>
+        <div class="phi-desc">总造价3万元，是工业版的1/20。一个班30人，每人分摊1000元。省下的60万可以买60套AquaMind，每个学生桌上一套——这才是大规模AI水务人才培养的可行路径。</div>
+      </div>
+      <div class="phi-card" data-num="06">
+        <div class="phi-icon">🤝</div>
+        <div class="phi-title">人机协同培养</div>
+        <div class="phi-desc">AquaMind内置AI助教模块（基于HydroClaw大模型）：当学生的PID调参发散时，AI会解释为什么；当水质预测偏差大时，AI会提示检查哪个传感器——不是替代学生思考，而是放大学生能力。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1: HARDWARE ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag sky">HARDWARE</span>
+      <h2 class="sec-title">极简硬件配置</h2>
+    </div>
+
+    <div class="hw-layout">
+      <!-- mini reactor diagram -->
+      <div class="hw-panel">
+        <div class="panel-title">实验反应器 · 桌面级 20L</div>
+        <div class="reactor-svg-wrap">
+          <svg viewBox="0 0 320 240" width="100%" style="display:block;">
+            <defs>
+              <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(56,189,248,.2)"/>
+                <stop offset="100%" stop-color="rgba(56,189,248,.05)"/>
+              </linearGradient>
+            </defs>
+            <!-- main tank -->
+            <rect x="80" y="30" width="160" height="170" rx="4" fill="#0d1117" stroke="#2e4060" stroke-width="2"/>
+            <!-- water fill -->
+            <rect x="82" y="80" width="156" height="118" rx="2" fill="url(#wg)"/>
+            <!-- partition -->
+            <rect x="148" y="80" width="3" height="95" fill="#2e4060"/>
+            <!-- aerobic label -->
+            <text x="185" y="128" text-anchor="middle" font-size="9" fill="#38bdf8" font-family="Space Grotesk">AEROBIC</text>
+            <!-- anoxic label -->
+            <text x="116" y="128" text-anchor="middle" font-size="9" fill="#f0b429" font-family="Space Grotesk">ANOXIC</text>
+            <!-- aerators -->
+            <ellipse cx="180" cy="196" rx="18" ry="4" fill="none" stroke="#38bdf8" stroke-width="1.5" opacity=".7"/>
+            <ellipse cx="220" cy="196" rx="14" ry="4" fill="none" stroke="#38bdf8" stroke-width="1.5" opacity=".7"/>
+            <!-- bubbles -->
+            <circle cx="175" cy="170" r="3" fill="rgba(56,189,248,.3)"/>
+            <circle cx="190" cy="150" r="2" fill="rgba(56,189,248,.2)"/>
+            <circle cx="220" cy="160" r="4" fill="rgba(56,189,248,.25)"/>
+            <!-- stirrer anoxic -->
+            <circle cx="116" cy="120" r="12" fill="#111822" stroke="#f0b429" stroke-width="1.5" opacity=".8"/>
+            <text x="116" y="124" text-anchor="middle" font-size="9" fill="#f0b429" font-family="Space Grotesk">M</text>
+            <!-- DO sensor -->
+            <line x1="220" y1="30" x2="220" y2="110" stroke="#34d399" stroke-width="1.5" stroke-dasharray="3,2"/>
+            <circle cx="220" cy="112" r="5" fill="rgba(52,211,153,.2)" stroke="#34d399" stroke-width="1"/>
+            <text x="220" y="24" text-anchor="middle" font-size="8" fill="#34d399" font-family="JetBrains Mono">DO</text>
+            <!-- pH probe -->
+            <line x1="170" y1="30" x2="170" y2="95" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="3,2"/>
+            <circle cx="170" cy="97" r="5" fill="rgba(167,139,250,.2)" stroke="#a78bfa" stroke-width="1"/>
+            <text x="170" y="24" text-anchor="middle" font-size="8" fill="#a78bfa" font-family="JetBrains Mono">pH</text>
+            <!-- dimensions -->
+            <text x="160" y="15" text-anchor="middle" font-size="8" fill="#3d5a78" font-family="JetBrains Mono">400×200×260 mm</text>
+            <!-- peristaltic pump left -->
+            <rect x="20" y="90" width="46" height="32" rx="3" fill="#111822" stroke="#34d399" stroke-width="1" opacity=".8"/>
+            <text x="43" y="103" text-anchor="middle" font-size="7" fill="#34d399" font-family="Space Grotesk">蠕动泵</text>
+            <text x="43" y="115" text-anchor="middle" font-size="7" fill="#7a9ab8" font-family="JetBrains Mono">×2</text>
+            <line x1="66" y1="106" x2="80" y2="106" stroke="#34d399" stroke-width="1.5" marker-end="url(#a1)"/>
+            <!-- air pump right -->
+            <rect x="254" y="188" width="50" height="26" rx="3" fill="#111822" stroke="#38bdf8" stroke-width="1" opacity=".8"/>
+            <text x="279" y="199" text-anchor="middle" font-size="7" fill="#38bdf8" font-family="Space Grotesk">水族气泵</text>
+            <text x="279" y="210" text-anchor="middle" font-size="7" fill="#7a9ab8" font-family="JetBrains Mono">+MFC</text>
+            <line x1="254" y1="201" x2="242" y2="201" stroke="#38bdf8" stroke-width="1.5"/>
+            <!-- Jetson box -->
+            <rect x="90" y="220" width="140" height="18" rx="3" fill="rgba(56,189,248,.08)" stroke="rgba(56,189,248,.2)" stroke-width="1"/>
+            <text x="160" y="232" text-anchor="middle" font-size="8" fill="#38bdf8" font-family="JetBrains Mono">Jetson Orin NX · Edge AI</text>
+          </svg>
+        </div>
+        <table class="bom-table">
+          <tr><td>尺寸</td><td><span class="mono">400×200×260 mm</span></td></tr>
+          <tr><td>有效容积</td><td><span class="mono">~15 L（好氧10L+缺氧5L）</span></td></tr>
+          <tr><td>材质</td><td><span class="mono">5mm 透明亚克力</span></td></tr>
+          <tr><td>工作模式</td><td><span class="mono">连续流 / SBR 拨码切换</span></td></tr>
+          <tr><td>HRT范围</td><td><span class="mono">2~12 h（教学工况）</span></td></tr>
+          <tr><td>配套桌面</td><td><span class="mono gold">铝合金实验台 600×400mm</span></td></tr>
+        </table>
+      </div>
+
+      <!-- BOM -->
+      <div class="hw-panel">
+        <div class="panel-title">全部硬件清单 · 低成本选型</div>
+        <table class="bom-table">
+          <thead>
+            <tr><th>设备</th><th>型号/替代方案</th><th>单价</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>亚克力反应器（定制）</td><td>透明可视化结构</td><td><span class="mono gold">¥800</span></td></tr>
+            <tr><td>蠕动泵 ×2</td><td>兰格 BT100-1L（RS485）</td><td><span class="mono gold">¥1,200/台</span></td></tr>
+            <tr><td>水族静音气泵</td><td>森森 ACO-9630 50W</td><td><span class="mono gold">¥80</span></td></tr>
+            <tr><td>气体质量流量计 MFC ×1</td><td>美国Alicat M-5SLPM</td><td><span class="mono gold">¥3,500</span></td></tr>
+            <tr><td>DO传感器</td><td>Atlas Scientific DO Kit EZO™</td><td><span class="mono gold">¥600</span></td></tr>
+            <tr><td>pH传感器</td><td>Atlas Scientific pH Kit EZO™</td><td><span class="mono gold">¥550</span></td></tr>
+            <tr><td>浊度传感器</td><td>Atlas Scientific Turbidity EZO™</td><td><span class="mono gold">¥480</span></td></tr>
+            <tr><td>温度探头 ×2</td><td>DS18B20 防水型</td><td><span class="mono gold">¥30/只</span></td></tr>
+            <tr><td>电导率传感器</td><td>Atlas Scientific EC EZO™</td><td><span class="mono gold">¥480</span></td></tr>
+            <tr><td>超声波液位计 ×3</td><td>JSN-SR04T</td><td><span class="mono gold">¥35/只</span></td></tr>
+            <tr><td>微型电磁流量计</td><td>GEMS FT-110 DN6</td><td><span class="mono gold">¥1,200</span></td></tr>
+            <tr><td>电动微型蝶阀 ×4</td><td>DN15 RS485</td><td><span class="mono gold">¥120/只</span></td></tr>
+            <tr><td>小型磁力搅拌器</td><td>85-2数显 200W</td><td><span class="mono gold">¥280</span></td></tr>
+            <tr><td>不锈钢药剂桶 ×3</td><td>1L PP量筒型</td><td><span class="mono gold">¥60/只</span></td></tr>
+            <tr><td>配电箱+低压电器</td><td>导轨式组合</td><td><span class="mono gold">¥1,200</span></td></tr>
+            <tr><td>管路配件+安装</td><td>PVC/硅胶软管全套</td><td><span class="mono gold">¥500</span></td></tr>
+            <tr style="background:rgba(240,180,41,.04)"><td colspan="2" style="color:var(--gold);font-weight:700;">硬件小计</td><td><span class="mono gold" style="font-size:13px;">≈ ¥11,500</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: EDGE BRAIN ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag violet">EDGE AI</span>
+      <h2 class="sec-title">边缘算力核心 · 四年成长的大脑</h2>
+    </div>
+
+    <div class="ibox mint">
+      <span class="ibox-icon">🧩</span>
+      <div>边缘计算节点是AquaMind的核心投资，也是学生四年的<strong>算法实验台</strong>。选型原则：足够的AI算力运行本地模型，开放的接口允许学生随意刷写，价格合理不会心疼"搞坏了"。</div>
+    </div>
+
+    <div class="brain-grid">
+      <div class="brain-card" style="border-color:rgba(118,208,66,.2);">
+        <div class="brain-chip">
+          <div class="chip-icon jetson">🤖</div>
+          <div>
+            <div class="chip-name">NVIDIA Jetson Orin NX 16GB</div>
+            <div class="chip-price">¥3,500 · 推荐主配置</div>
+          </div>
+        </div>
+        <div class="spec-row"><span class="spec-key">AI算力</span><span class="spec-val">100 TOPS (INT8)</span></div>
+        <div class="spec-row"><span class="spec-key">CPU</span><span class="spec-val">8核 ARM A78AE 2.0GHz</span></div>
+        <div class="spec-row"><span class="spec-key">内存</span><span class="spec-val">16GB LPDDR5</span></div>
+        <div class="spec-row"><span class="spec-key">存储</span><span class="spec-val">256GB NVMe SSD</span></div>
+        <div class="spec-row"><span class="spec-key">接口</span><span class="spec-val">GPIO / UART / I2C / USB</span></div>
+        <div class="spec-row"><span class="spec-key">适用场景</span><span class="spec-val">Year 3~4 AI模型训练+推理</span></div>
+        <div class="spec-row"><span class="spec-key">操作系统</span><span class="spec-val">JetPack 6 (Ubuntu 22.04)</span></div>
+        <div class="spec-row"><span class="spec-key">能耗</span><span class="spec-val">10~25W（可电池供电）</span></div>
+      </div>
+
+      <div class="brain-card" style="border-color:rgba(200,60,60,.2);">
+        <div class="brain-chip">
+          <div class="chip-icon rpi">🍓</div>
+          <div>
+            <div class="chip-name">Raspberry Pi 5 + 8GB</div>
+            <div class="chip-price">¥650 · 入门配置（Year 1~2）</div>
+          </div>
+        </div>
+        <div class="spec-row"><span class="spec-key">CPU</span><span class="spec-val">Cortex-A76 四核 2.4GHz</span></div>
+        <div class="spec-row"><span class="spec-key">内存</span><span class="spec-val">8GB LPDDR4X</span></div>
+        <div class="spec-row"><span class="spec-key">特色</span><span class="spec-val">PCIe 2.0 · HAT扩展生态</span></div>
+        <div class="spec-row"><span class="spec-key">GPIO</span><span class="spec-val">40Pin，全接Atlas传感器</span></div>
+        <div class="spec-row"><span class="spec-key">升级路径</span><span class="spec-val">Year 3起换Orin NX，Pi可继续做DAQ节点</span></div>
+        <div class="spec-row"><span class="spec-key">推荐搭配</span><span class="spec-val">Pi 5 + Coral USB Accelerator</span></div>
+        <div class="spec-row"><span class="spec-key">能耗</span><span class="spec-val">5~12W</span></div>
+      </div>
+
+      <div class="brain-card" style="border-color:rgba(56,189,248,.2);">
+        <div class="brain-chip">
+          <div class="chip-icon soft">💻</div>
+          <div>
+            <div class="chip-name">软件运行时栈（开源）</div>
+            <div class="chip-price">全部免费 · Python生态</div>
+          </div>
+        </div>
+        <div class="spec-row"><span class="spec-key">数据采集</span><span class="spec-val">Python + Modbus / I2C</span></div>
+        <div class="spec-row"><span class="spec-key">底层控制</span><span class="spec-val">micropython PLC脚本</span></div>
+        <div class="spec-row"><span class="spec-key">实时DB</span><span class="spec-val">InfluxDB 2.x (本地)</span></div>
+        <div class="spec-row"><span class="spec-key">可视化</span><span class="spec-val">Grafana + Jupyter Lab</span></div>
+        <div class="spec-row"><span class="spec-key">AI框架</span><span class="spec-val">PyTorch / TensorFlow Lite</span></div>
+        <div class="spec-row"><span class="spec-key">控制建模</span><span class="spec-val">do-mpc (MPC) / stable-baselines3</span></div>
+        <div class="spec-row"><span class="spec-key">数字孪生</span><span class="spec-val">AquaMind DT（本组开发）</span></div>
+      </div>
+
+      <div class="brain-card" style="border-color:rgba(240,180,41,.2);">
+        <div class="brain-chip">
+          <div class="chip-icon cloud">☁️</div>
+          <div>
+            <div class="chip-name">云端 HydroClaw 接口</div>
+            <div class="chip-price">实验室服务器 / 阿里云ECS</div>
+          </div>
+        </div>
+        <div class="spec-row"><span class="spec-key">大模型推理</span><span class="spec-val">瀚铎水网大模型 API</span></div>
+        <div class="spec-row"><span class="spec-key">MPC求解</span><span class="spec-val">云端CasADi求解器</span></div>
+        <div class="spec-row"><span class="spec-key">数据同步</span><span class="spec-val">MQTT → HydroOS Agent</span></div>
+        <div class="spec-row"><span class="spec-key">协作功能</span><span class="spec-val">班级实验数据共享空间</span></div>
+        <div class="spec-row"><span class="spec-key">AI助教</span><span class="spec-val">基于HydroClaw的问答助手</span></div>
+        <div class="spec-row"><span class="spec-key">毕设平台</span><span class="spec-val">学生毕设对接真实工程项目</span></div>
+        <div class="spec-row"><span class="spec-key">带宽需求</span><span class="spec-val">&lt;1 Mbps（MQTT轻量级）</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: AI SENSOR FUSION ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag mint">AI SENSING</span>
+      <h2 class="sec-title">软件定义传感 · 用AI替代昂贵仪器</h2>
+    </div>
+
+    <div class="ibox blue">
+      <span class="ibox-icon">🔬</span>
+      <div>工业版方案用<strong>哈希NH₄⁺分析仪（¥68,000）</strong>和<strong>在线COD仪（¥85,000）</strong>直接测量。AquaMind方案：用¥600的基础传感器阵列+LSTM/XGBoost模型间接预测——这本身就是一个绝佳的AI教学课题。学生训练的模型预测误差，就是他们的学习成果。</div>
+    </div>
+
+    <div class="sensor-arch">
+      <div class="panel-title" style="margin-bottom:12px;">直接测量层（低成本传感器）</div>
+      <div class="sensor-row">
+        <div class="sensor-chip">
+          <div class="sensor-sym">DO</div>
+          <div class="sensor-name-sm">溶解氧</div>
+          <div class="sensor-price-sm">¥600</div>
+        </div>
+        <div class="sensor-chip">
+          <div class="sensor-sym">pH</div>
+          <div class="sensor-name-sm">酸碱度</div>
+          <div class="sensor-price-sm">¥550</div>
+        </div>
+        <div class="sensor-chip">
+          <div class="sensor-sym">EC</div>
+          <div class="sensor-name-sm">电导率</div>
+          <div class="sensor-price-sm">¥480</div>
+        </div>
+        <div class="sensor-chip">
+          <div class="sensor-sym">NTU</div>
+          <div class="sensor-name-sm">浊度</div>
+          <div class="sensor-price-sm">¥480</div>
+        </div>
+        <div class="sensor-chip">
+          <div class="sensor-sym">T°</div>
+          <div class="sensor-name-sm">温度×2</div>
+          <div class="sensor-price-sm">¥30×2</div>
+        </div>
+        <div class="sensor-chip">
+          <div class="sensor-sym">ORP</div>
+          <div class="sensor-name-sm">氧化还原</div>
+          <div class="sensor-price-sm">+pH探头</div>
+        </div>
+      </div>
+
+      <div class="arrow-row">
+        <span class="arr-box">── 特征向量 [DO, pH, EC, NTU, T, ORP, Q_air, D_dose, t] ──▶</span>
+        <span style="font-size:18px;color:var(--violet)">🤖</span>
+        <span class="arr-box">AI预测层</span>
+      </div>
+
+      <div class="ai-predict-box">
+        <div class="predict-item">
+          <div class="predict-label">预测目标1</div>
+          <div class="predict-name">COD / BOD₅</div>
+          <div class="predict-method">XGBoost + LSTM</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">替代 ¥85,000 哈希仪</div>
+        </div>
+        <div class="predict-item">
+          <div class="predict-label">预测目标2</div>
+          <div class="predict-name">NH₄⁺ / TN</div>
+          <div class="predict-method">多任务神经网络</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">替代 ¥68,000 分析仪</div>
+        </div>
+        <div class="predict-item">
+          <div class="predict-label">预测目标3</div>
+          <div class="predict-name">TP / MLSS</div>
+          <div class="predict-method">随机森林回归</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">替代 ¥18,000 浓度计</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text3);">⚑ 预测精度由学生迭代提升，目标RMSE：COD &lt;10 mg/L，NH₄⁺ &lt;2 mg/L。每学期最优模型进入AquaMind公共知识库。</div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4: 4-YEAR CURRICULUM ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag gold">CURRICULUM</span>
+      <h2 class="sec-title">四年课程模块 · 渐进式能力解锁</h2>
+    </div>
+
+    <div class="curriculum-grid">
+      <!-- YEAR 1 -->
+      <div class="year-card">
+        <div class="year-card-header y1">
+          <div class="year-badge y1">1</div>
+          <div>
+            <div class="year-card-title">感知者 · Perceiver</div>
+            <div class="year-card-motto">观察世界，建立直觉</div>
+          </div>
+        </div>
+        <div class="year-card-body">
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">传感器标定与数据采集</div>
+              <div class="module-desc">Atlas EZO传感器接线、Python读取、误差分析、pH缓冲液标定实验</div>
+            </div>
+            <span class="module-tag tag-hw">硬件</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">Python水质数据分析入门</div>
+              <div class="module-desc">pandas读取InfluxDB数据，matplotlib绘制DO/pH时序曲线，统计描述</div>
+            </div>
+            <span class="module-tag tag-sw">软件</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">混凝实验 + Jar-Test数字化</div>
+              <div class="module-desc">传统混凝实验升级：蠕动泵替代量杯，自动记录浊度下降曲线</div>
+            </div>
+            <span class="module-tag tag-hw">硬件</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">Grafana实验看板搭建</div>
+              <div class="module-desc">学生自己搭建属于自己的实验监控大屏，理解数据可视化</div>
+            </div>
+            <span class="module-tag tag-sw">软件</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- YEAR 2 -->
+      <div class="year-card">
+        <div class="year-card-header y2">
+          <div class="year-badge y2">2</div>
+          <div>
+            <div class="year-card-title">建模者 · Modeler</div>
+            <div class="year-card-motto">理解规律，构建模型</div>
+          </div>
+        </div>
+        <div class="year-card-body">
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">PID控制器编程实战</div>
+              <div class="module-desc">用Python实现DO-PID，通过MFC驱动曝气，观察调参对响应的影响</div>
+            </div>
+            <span class="module-tag tag-sw">软件</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">混凝剂投加前馈模型</div>
+              <div class="module-desc">用Jar-Test数据拟合PAC投量-浊度关系，编写前馈+PID复合控制</div>
+            </div>
+            <span class="module-tag tag-th">算法</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">ASM1水质模型仿真</div>
+              <div class="module-desc">在Jupyter中搭建简化ASM1，用实测数据标定参数μ_H、KS、bH</div>
+            </div>
+            <span class="module-tag tag-th">算法</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">KLa氧传质系数辨识</div>
+              <div class="module-desc">通过不同气量下DO响应曲线，用最小二乘法辨识KLa-Q_air关系</div>
+            </div>
+            <span class="module-tag tag-th">算法</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- YEAR 3 -->
+      <div class="year-card">
+        <div class="year-card-header y3">
+          <div class="year-badge y3">3</div>
+          <div>
+            <div class="year-card-title">智造者 · AI Builder</div>
+            <div class="year-card-motto">用AI看见看不见的东西</div>
+          </div>
+        </div>
+        <div class="year-card-body">
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">水质软测量模型训练</div>
+              <div class="module-desc">收集100+组人工化验数据，训练XGBoost/LSTM预测COD和氨氮，评估RMSE</div>
+            </div>
+            <span class="module-tag tag-ai">AI</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">数字孪生构建与同步</div>
+              <div class="module-desc">将ASM1+LSTM混合模型部署至AquaMind DT，实现实时虚实同步，误差＜5%</div>
+            </div>
+            <span class="module-tag tag-ai">AI</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">异常检测与故障诊断</div>
+              <div class="module-desc">Isolation Forest检测传感器漂移/堵塞，训练分类器区分12类故障模式</div>
+            </div>
+            <span class="module-tag tag-ai">AI</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">边缘模型部署优化</div>
+              <div class="module-desc">TensorFlow Lite量化压缩，在Jetson Orin上跑实时推理，延迟&lt;100ms</div>
+            </div>
+            <span class="module-tag tag-sw">软件</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- YEAR 4 -->
+      <div class="year-card">
+        <div class="year-card-header y4">
+          <div class="year-badge y4">4</div>
+          <div>
+            <div class="year-card-title">自主者 · Autonomist</div>
+            <div class="year-card-motto">让系统自己思考</div>
+          </div>
+        </div>
+        <div class="year-card-body">
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">MPC模型预测控制实现</div>
+              <div class="module-desc">用do-mpc库实现多变量MPC，控制DO+pH+加药量，对比PID节能率</div>
+            </div>
+            <span class="module-tag tag-ai">AI</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">强化学习曝气优化（可选）</div>
+              <div class="module-desc">stable-baselines3 PPO训练曝气策略，在数字孪生中仿真验证后迁移实物</div>
+            </div>
+            <span class="module-tag tag-ai">AI</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">HydroClaw毕业设计对接</div>
+              <div class="module-desc">将实验平台作为HydroClaw子节点，接入实验室水网示范系统，发表论文</div>
+            </div>
+            <span class="module-tag tag-th">毕设</span>
+          </div>
+          <div class="module-item">
+            <div class="module-dot"></div>
+            <div style="flex:1">
+              <div class="module-name">完整自主控制系统交付</div>
+              <div class="module-desc">开源代码 + 技术报告 + 模型权重，贡献至AquaMind公共知识库</div>
+            </div>
+            <span class="module-tag tag-sw">开源</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 5: ALGORITHMS ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag rose">ALGORITHMS</span>
+      <h2 class="sec-title">核心算法模块 · 从简单到自主</h2>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-head">
+        <div class="algo-name">① 软测量虚拟传感器（Year 3 核心课题）</div>
+        <span class="algo-year-badge yr3">Year 3</span>
+      </div>
+      <div class="algo-note" style="margin-bottom:8px;">用便宜传感器的数据预测昂贵仪器的量——这是降本增效的核心思想，也是工业AI最实用的应用。</div>
+      <div class="code-block">## 软测量流程（学生用Jupyter一步步实现）
+
+# 1. 特征工程
+X = df[['DO', 'pH', 'EC', 'NTU', 'T', 'ORP', 'Q_air', 'dose_PAC']]
+y_COD = df['COD_lab']   # 人工化验值（每周测一次）
+
+# 2. 时序特征扩展（滚动窗口均值）
+X['DO_ma6h'] = X['DO'].rolling('6h').mean()
+X['NTU_diff'] = X['NTU'].diff(periods=12)
+
+# 3. XGBoost基础模型
+from xgboost import XGBRegressor
+model_cod = XGBRegressor(n_estimators=200, max_depth=5)
+model_cod.fit(X_train, y_COD_train)
+
+# 4. LSTM时序残差修正（捕捉动态规律）
+# 输入：过去24步特征序列  输出：XGBoost残差修正量
+lstm_residual = LSTM(input_dim=8, hidden_dim=64, seq_len=24)
+y_final = model_cod.predict(X) + lstm_residual.predict(X_seq)
+
+# 目标：RMSE(COD) < 10 mg/L，RMSE(NH4) < 2 mg/L</div>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-head">
+        <div class="algo-name">② DO级联控制 + 节能间歇曝气（Year 2~3）</div>
+        <span class="algo-year-badge yr2">Year 2+</span>
+      </div>
+      <div class="code-block">## 自适应间歇曝气策略（比连续曝气节能 20~35%）
+
+class AdaptiveAeration:
+    def __init__(self, DO_target=2.0, min_aer=120, min_mix=60):
+        self.DO_sp = DO_target
+        self.pid = PID(Kp=0.8, Ki=0.05, Kd=0.1)
+
+    def update(self, DO_meas, NH4_load):
+        # 外环：DO设定点随氨氮负荷动态调整
+        self.DO_sp = 1.5 + 0.8 * (NH4_load / NH4_ref)
+
+        # 内环：PID → MFC指令
+        Q_air = self.pid.compute(self.DO_sp, DO_meas)
+
+        # 节能判断：DO充足时切换搅拌不曝气
+        if DO_meas > self.DO_sp + 0.3:
+            return {'mode': 'mix_only', 'Q_air': 0}
+        else:
+            return {'mode': 'aerate', 'Q_air': clip(Q_air, 0.5, 5.0)}</div>
+    </div>
+
+    <div class="algo-card">
+      <div class="algo-head">
+        <div class="algo-name">③ 模型预测控制 MPC（Year 4 毕设级）</div>
+        <span class="algo-year-badge yr4">Year 4</span>
+      </div>
+      <div class="code-block">## do-mpc多变量MPC（控制DO + 投药量，预测水质达标）
+
+import do_mpc
+
+model = do_mpc.model.Model('continuous')
+# 状态：[COD, NH4, DO, MLSS]   控制：[Q_air, D_PAC, D_NaOH]
+x = model.set_variable('_x', 'states', (4,1))
+u = model.set_variable('_u', 'controls', (3,1))
+
+# 右端项：ASM1简化 + LSTM残差
+model.set_rhs('states', ASM1_simplified(x, u) + LSTM_correction(x_hist))
+
+# MPC目标：最小化水质偏差 + 能耗
+mterm = (NH4_out - NH4_target)**2 * 100
+lterm = mterm + w_e * Q_air**2 + w_d * D_PAC**2
+
+# 约束：水质合规 + 执行器限制
+mpc.bounds['lower', '_u', 'Q_air'] = 0.5   # L/min
+mpc.bounds['upper', '_u', 'Q_air'] = 8.0
+# Np=12步(12min), Nc=3步控制域, Ts=60s
+# → 求解时间 &lt; 200ms（Jetson Orin上）</div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 6: HYDROCLAW CONNECT ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag sky">HYDROCLAW</span>
+      <h2 class="sec-title">接入HydroClaw · 从实验台到真实水网</h2>
+    </div>
+
+    <div class="hc-connect">
+      <div class="hc-title">AquaMind → HydroOS Agent 接入方案</div>
+      <div class="hc-sub">每台AquaMind作为一个轻量级HydroOS节点，学生实验数据汇入水网大模型知识库，形成从实验室到工程的完整数据链。</div>
+      <div class="hc-feature-grid">
+        <div class="hc-feat">
+          <div class="hc-feat-icon">📡</div>
+          <div class="hc-feat-name">数据上报</div>
+          <div class="hc-feat-desc">MQTT协议上报实验时序数据至HydroClaw知识库，每30s一包，自动打标签（班级/实验编号/工况）</div>
+        </div>
+        <div class="hc-feat">
+          <div class="hc-feat-icon">🧠</div>
+          <div class="hc-feat-name">AI助教问答</div>
+          <div class="hc-feat-desc">学生调参遇到问题可问AI助教："我的DO发散了怎么办？" — 基于HydroClaw大模型给出针对当前实验状态的建议</div>
+        </div>
+        <div class="hc-feat">
+          <div class="hc-feat-icon">🔄</div>
+          <div class="hc-feat-name">云端MPC下发</div>
+          <div class="hc-feat-desc">Year 4学生：HydroClaw云端求解MPC优化指令，通过HTTP REST接口下发至实验台边缘节点执行，验证云边协同延迟</div>
+        </div>
+        <div class="hc-feat">
+          <div class="hc-feat-icon">🏆</div>
+          <div class="hc-feat-name">模型贡献排行</div>
+          <div class="hc-feat-desc">学生训练的软测量模型按精度排名，优秀模型被纳入HydroClaw物理AI引擎，学生名字写入模型元数据</div>
+        </div>
+        <div class="hc-feat">
+          <div class="hc-feat-icon">🔬</div>
+          <div class="hc-feat-name">真实工程数据反哺</div>
+          <div class="hc-feat-desc">胶东调水/南水北调等真实项目数据经脱敏后向学生开放，学生算法可在真实大规模数据集上验证</div>
+        </div>
+        <div class="hc-feat">
+          <div class="hc-feat-icon">📄</div>
+          <div class="hc-feat-name">论文孵化通道</div>
+          <div class="hc-feat-desc">学生优秀实验成果经导师评审后，可纳入CHS系列25篇论文计划作为数据来源，毕业前有机会署名发表</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 7: COST COMPARE ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag gold">COST</span>
+      <h2 class="sec-title">成本对比与规模效益</h2>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-card old">
+        <div class="compare-label">❌ 工业版方案（原设计）</div>
+        <div class="compare-row"><span class="compare-key">总造价（含税）</span><span class="compare-val-old">¥644,000</span></div>
+        <div class="compare-row"><span class="compare-key">核心贵价设备</span><span class="compare-val-old">哈希NH₄⁺仪¥68K + COD仪¥85K</span></div>
+        <div class="compare-row"><span class="compare-key">学生可触碰程度</span><span class="compare-val-old">只能观察，不能修改</span></div>
+        <div class="compare-row"><span class="compare-key">学习深度</span><span class="compare-val-old">操作黑盒仪器</span></div>
+        <div class="compare-row"><span class="compare-key">30人班级配置数</span><span class="compare-val-old">1套（共享等待）</span></div>
+        <div class="compare-row"><span class="compare-key">AI培养含量</span><span class="compare-val-old">极低（读数据为主）</span></div>
+        <div class="compare-row"><span class="compare-key">毕业后迁移性</span><span class="compare-val-old">只懂用仪器</span></div>
+      </div>
+      <div class="compare-card new">
+        <div class="compare-label">✅ AquaMind教育版</div>
+        <div class="compare-row"><span class="compare-key">总造价（含税）</span><span class="compare-val-new">¥30,000</span></div>
+        <div class="compare-row"><span class="compare-key">核心投入</span><span class="compare-val-new">边缘AI算力 + 软件栈</span></div>
+        <div class="compare-row"><span class="compare-key">学生可触碰程度</span><span class="compare-val-new">全部开源，随意改写</span></div>
+        <div class="compare-row"><span class="compare-key">学习深度</span><span class="compare-val-new">自己写算法驱动系统</span></div>
+        <div class="compare-row"><span class="compare-key">30人班级配置数</span><span class="compare-val-new">6套（5人一组，并行）</span></div>
+        <div class="compare-row"><span class="compare-key">AI培养含量</span><span class="compare-val-new">极高（训练/部署/优化）</span></div>
+        <div class="compare-row"><span class="compare-key">毕业后迁移性</span><span class="compare-val-new">懂AI+控制+数据全栈</span></div>
+      </div>
+    </div>
+
+    <div class="cost-grid">
+      <div class="cost-card">
+        <div class="cost-category">AquaMind 单套成本明细</div>
+        <div class="cost-item"><span class="cost-name">硬件（反应器+传感器+泵阀）</span><span class="cost-val">¥11,500</span></div>
+        <div class="cost-item"><span class="cost-name">边缘算力（Jetson Orin NX 16G）</span><span class="cost-val">¥3,500</span></div>
+        <div class="cost-item"><span class="cost-name">Raspberry Pi 5（Year 1~2节点）</span><span class="cost-val">¥650</span></div>
+        <div class="cost-item"><span class="cost-name">铝合金实验桌面框架</span><span class="cost-val">¥1,200</span></div>
+        <div class="cost-item"><span class="cost-name">配电+安装调试</span><span class="cost-val">¥1,500</span></div>
+        <div class="cost-item"><span class="cost-name">软件开发（首套）</span><span class="cost-val">¥5,000</span></div>
+        <div class="cost-item"><span class="cost-name">首年耗材（药剂+标准液）</span><span class="cost-val">¥1,500</span></div>
+        <div class="cost-item" style="border-top:1px solid var(--line2);margin-top:6px;padding-top:12px;">
+          <span class="cost-name" style="color:var(--gold);font-weight:700;">单套小计（含税）</span>
+          <span class="cost-val" style="font-size:14px;color:var(--gold);">¥24,850</span>
+        </div>
+      </div>
+
+      <div class="cost-card">
+        <div class="cost-category">规模化配置方案</div>
+        <div class="cost-item"><span class="cost-name">1套（科研用，全配置）</span><span class="cost-val">≈ ¥30,000</span></div>
+        <div class="cost-item"><span class="cost-name">6套（1个班级，30人5人组）</span><span class="cost-val">≈ ¥18万（软件均摊后）</span></div>
+        <div class="cost-item"><span class="cost-name">20套（1个院系，全专业）</span><span class="cost-val">≈ ¥50万</span></div>
+        <div class="cost-item"><span class="cost-name">每生直接分摊（6套/班）</span><span class="cost-val">¥1,000/人</span></div>
+        <div class="cost-item"><span class="cost-name">年耗材费（传感器维护）</span><span class="cost-val">¥2,000/套/年</span></div>
+        <div class="cost-item"><span class="cost-name">与工业版对比节省</span><span class="cost-val" style="color:var(--mint);">节省 ¥61.4万/套</span></div>
+        <div class="cost-item" style="border-top:1px solid var(--line2);margin-top:6px;padding-top:12px;">
+          <span class="cost-name" style="color:var(--mint);font-weight:700;">6套 vs 1套工业版</span>
+          <span class="cost-val" style="color:var(--mint);">同等投入，6倍学生同时实验</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cost-total-band">
+      <div>
+        <div class="cost-total-label">AquaMind 单套推荐配置 · 含税总价</div>
+        <div class="cost-total-note">Jetson Orin NX + RPi 5 + 全传感器套装 + 反应器 + 软件</div>
+      </div>
+      <div class="cost-total-num">3<small>万元</small></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 8: GROWTH ROADMAP ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <span class="sec-tag mint">GROWTH PATH</span>
+      <h2 class="sec-title">学生成长路线图 · 四年能力升级</h2>
+    </div>
+
+    <div class="roadmap">
+      <div class="road-item">
+        <div class="road-dot" style="background:var(--mint)"></div>
+        <div class="road-phase" style="color:var(--mint)">Year 1 · 上学期</div>
+        <div class="road-title">装备认知与数字化实验基础</div>
+        <div class="road-tasks">
+          <span class="road-task">传感器接线与标定</span>
+          <span class="road-task">Python环境搭建</span>
+          <span class="road-task">实验数据读取与可视化</span>
+          <span class="road-task">Grafana看板设计</span>
+        </div>
+        <div class="road-outcome">✓ 学生建立属于自己的第一个实验数字看板</div>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot" style="background:var(--mint)"></div>
+        <div class="road-phase" style="color:var(--mint)">Year 1 · 下学期</div>
+        <div class="road-title">混凝实验智能化改造</div>
+        <div class="road-tasks">
+          <span class="road-task">蠕动泵编程投药</span>
+          <span class="road-task">Jar-test数据建库</span>
+          <span class="road-task">投量-浊度散点图拟合</span>
+        </div>
+        <div class="road-outcome">✓ 用数据拟合得到第一个"自己的"混凝模型</div>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot" style="background:var(--sky)"></div>
+        <div class="road-phase" style="color:var(--sky)">Year 2 · 上学期</div>
+        <div class="road-title">PID控制编程与DO闭环实验</div>
+        <div class="road-tasks">
+          <span class="road-task">Python PID实现</span>
+          <span class="road-task">Ziegler-Nichols调参</span>
+          <span class="road-task">DO阶跃响应测试</span>
+          <span class="road-task">KLa辨识实验</span>
+        </div>
+        <div class="road-outcome">✓ 让DO控制精度达到 ±0.2 mg/L，编写第一个控制程序</div>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot" style="background:var(--sky)"></div>
+        <div class="road-phase" style="color:var(--sky)">Year 2 · 下学期</div>
+        <div class="road-title">ASM1数字孪生初版搭建</div>
+        <div class="road-tasks">
+          <span class="road-task">ASM1 Jupyter实现</span>
+          <span class="road-task">参数标定（RLS）</span>
+          <span class="road-task">模型vs实测对比</span>
+          <span class="road-task">接入AquaMind DT</span>
+        </div>
+        <div class="road-outcome">✓ 数字孪生预测误差 &lt;15%，实现虚实同步展示</div>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot" style="background:var(--violet)"></div>
+        <div class="road-phase" style="color:var(--violet)">Year 3 · 全年</div>
+        <div class="road-title">AI水质软测量 + 模型精化</div>
+        <div class="road-tasks">
+          <span class="road-task">数据集构建（100+组化验）</span>
+          <span class="road-task">XGBoost/LSTM训练</span>
+          <span class="road-task">Jetson推理部署</span>
+          <span class="road-task">提交至HydroClaw知识库</span>
+        </div>
+        <div class="road-outcome">✓ COD预测误差 &lt;10 mg/L，模型贡献至公共知识库，可能获得署名</div>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot" style="background:var(--gold)"></div>
+        <div class="road-phase" style="color:var(--gold)">Year 4 · 全年</div>
+        <div class="road-title">MPC自主控制 + 毕业设计</div>
+        <div class="road-tasks">
+          <span class="road-task">do-mpc多变量MPC</span>
+          <span class="road-task">HydroClaw对接</span>
+          <span class="road-task">能耗节省验证</span>
+          <span class="road-task">论文撰写发表</span>
+        </div>
+        <div class="road-outcome">✓ 完成自主控制系统，节能 ≥20%，毕设答辩展示全链路AI水处理系统</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-brand"><em>AquaMind · 水智伴</em> — Cybernetics of Hydro Systems · Education Platform</div>
+  <div class="footer-note">CHS-EDU-AQUAMIND-V1.0 · 2026 · 河北工程大学 智慧水务实验室</div>
+</footer>
+
+</body>
+</html>
