@@ -102,3 +102,6 @@ deploy/ssl/*
 # 备份文件
 *.backup
 backup/
+
+# Generated orchestration artifacts
+outputs/
