@@ -15,6 +15,8 @@ try:
     FLASK_AVAILABLE = True
 except ImportError:
     FLASK_AVAILABLE = False
+    # Provide stubs so the module can be imported without Flask
+    Blueprint = None  # type: ignore[assignment,misc]
 
 import numpy as np
 
@@ -35,7 +37,18 @@ from water_plant_controller.maintenance.predictive_maintenance import (
 
 logger = logging.getLogger(__name__)
 
-analytics_bp = Blueprint("analytics", __name__, url_prefix="/api/analytics")
+# Guard: only create blueprint when Flask is available
+if FLASK_AVAILABLE:
+    analytics_bp = Blueprint("analytics", __name__, url_prefix="/api/analytics")
+else:
+    analytics_bp = None  # type: ignore[assignment]
+
+# ---------- Input validation constants ----------
+
+MAX_TIMESERIES_LENGTH = 10000
+MAX_HORIZON = 100
+MAX_EQUIPMENT_COUNT = 200
+MAX_HISTORY_ROWS = 5000
 
 # ---------- Shared state ----------
 
@@ -85,24 +98,44 @@ def predict_timeseries():
 
     Request JSON: {data: number[], horizon: int, method: "arima"|"es"|"ensemble"}
     """
-    body = request.get_json(force=True)
-    data = np.array(body.get("data", []), dtype=float)
-    horizon = int(body.get("horizon", 6))
-    method = body.get("method", "ensemble")
+    try:
+        body = request.get_json(force=True)
+    except Exception:
+        return jsonify({"error": "Invalid JSON body"}), 400
 
+    raw_data = body.get("data", [])
+    if not isinstance(raw_data, list) or len(raw_data) > MAX_TIMESERIES_LENGTH:
+        return jsonify({"error": f"data must be a list with <= {MAX_TIMESERIES_LENGTH} items"}), 400
+
+    try:
+        data = np.array(raw_data, dtype=float)
+        horizon = int(body.get("horizon", 6))
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": f"Invalid numeric input: {e}"}), 400
+
+    if not 1 <= horizon <= MAX_HORIZON:
+        return jsonify({"error": f"horizon must be between 1 and {MAX_HORIZON}"}), 400
     if len(data) < 5:
         return jsonify({"error": "Need at least 5 data points"}), 400
 
-    t0 = time.time()
-    if method == "arima":
-        forecaster = ARIMAForecaster(p=2, d=1, q=0)
-    elif method == "es":
-        forecaster = ExponentialSmoothingForecaster(alpha=0.3, beta=0.1)
-    else:
-        forecaster = EnsembleForecaster()
+    method = body.get("method", "ensemble")
+    if method not in ("arima", "es", "ensemble"):
+        return jsonify({"error": "method must be 'arima', 'es', or 'ensemble'"}), 400
 
-    result = forecaster.fit_predict(data, horizon)
-    elapsed = round((time.time() - t0) * 1000, 1)
+    try:
+        t0 = time.time()
+        if method == "arima":
+            forecaster = ARIMAForecaster(p=2, d=1, q=0)
+        elif method == "es":
+            forecaster = ExponentialSmoothingForecaster(alpha=0.3, beta=0.1)
+        else:
+            forecaster = EnsembleForecaster()
+
+        result = forecaster.fit_predict(data, horizon)
+        elapsed = round((time.time() - t0) * 1000, 1)
+    except Exception as e:
+        logger.exception("Forecast computation failed")
+        return jsonify({"error": f"Forecast failed: {e}"}), 500
 
     return jsonify({
         "method": result.method,
@@ -121,20 +154,38 @@ def predict_water_quality():
 
     Request JSON: {history: [{turbidity, ph, do}, ...], horizon: int}
     """
-    body = request.get_json(force=True)
-    history = body.get("history", [])
-    horizon = int(body.get("horizon", 6))
+    try:
+        body = request.get_json(force=True)
+    except Exception:
+        return jsonify({"error": "Invalid JSON body"}), 400
 
+    history = body.get("history", [])
+    if not isinstance(history, list) or len(history) > MAX_HISTORY_ROWS:
+        return jsonify({"error": f"history must be a list with <= {MAX_HISTORY_ROWS} items"}), 400
+
+    try:
+        horizon = int(body.get("horizon", 6))
+    except (ValueError, TypeError):
+        return jsonify({"error": "horizon must be an integer"}), 400
+
+    if not 1 <= horizon <= MAX_HORIZON:
+        return jsonify({"error": f"horizon must be between 1 and {MAX_HORIZON}"}), 400
     if len(history) < 10:
         return jsonify({"error": "Need at least 10 historical records"}), 400
 
-    predictor = WaterQualityPredictor()
-    turbidity = [h["turbidity"] for h in history]
-    ph = [h["ph"] for h in history]
-    do_vals = [h["do"] for h in history]
+    try:
+        predictor = WaterQualityPredictor()
+        turbidity = [float(h["turbidity"]) for h in history]
+        ph = [float(h["ph"]) for h in history]
+        do_vals = [float(h["do"]) for h in history]
 
-    predictor.fit(turbidity, ph, do_vals)
-    pred = predictor.predict(horizon)
+        predictor.fit(turbidity, ph, do_vals)
+        pred = predictor.predict(horizon)
+    except (KeyError, TypeError, ValueError) as e:
+        return jsonify({"error": f"Invalid history data: {e}"}), 400
+    except Exception as e:
+        logger.exception("Water quality prediction failed")
+        return jsonify({"error": f"Prediction failed: {e}"}), 500
 
     return jsonify({
         "predictions": pred,
@@ -261,10 +312,19 @@ def maintenance_fleet():
                             performance_index=0.88, vibration_level=1.0, temperature_delta=1, criticality_tier=3),
         ]
     else:
-        fleet = [EquipmentStatus(**eq) for eq in equipment_data]
+        if not isinstance(equipment_data, list) or len(equipment_data) > MAX_EQUIPMENT_COUNT:
+            return jsonify({"error": f"equipment must be a list with <= {MAX_EQUIPMENT_COUNT} items"}), 400
+        try:
+            fleet = [EquipmentStatus(**eq) for eq in equipment_data]
+        except (TypeError, KeyError) as e:
+            return jsonify({"error": f"Invalid equipment data: {e}"}), 400
 
-    scheduler = MaintenanceScheduler()
-    summary = scheduler.get_fleet_summary(fleet)
+    try:
+        scheduler = MaintenanceScheduler()
+        summary = scheduler.get_fleet_summary(fleet)
+    except Exception as e:
+        logger.exception("Maintenance planning failed")
+        return jsonify({"error": f"Maintenance planning failed: {e}"}), 500
     return jsonify(summary)
 
 
@@ -274,13 +334,32 @@ def maintenance_anomaly():
 
     Request JSON: {history: [[v1,v2,...], ...], reading: [v1,v2,...]}
     """
-    body = request.get_json(force=True)
-    history = np.array(body["history"], dtype=float)
-    reading = np.array(body["reading"], dtype=float)
+    try:
+        body = request.get_json(force=True)
+    except Exception:
+        return jsonify({"error": "Invalid JSON body"}), 400
 
-    detector = AnomalyDetector(method="zscore")
-    detector.fit(history)
-    result = detector.detect(reading)
+    if "history" not in body or "reading" not in body:
+        return jsonify({"error": "Both 'history' and 'reading' fields required"}), 400
+
+    try:
+        history = np.array(body["history"], dtype=float)
+        reading = np.array(body["reading"], dtype=float)
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": f"Invalid numeric data: {e}"}), 400
+
+    if history.size == 0 or history.ndim < 1:
+        return jsonify({"error": "history must be a non-empty array"}), 400
+    if len(history) > MAX_HISTORY_ROWS:
+        return jsonify({"error": f"history must have <= {MAX_HISTORY_ROWS} rows"}), 400
+
+    try:
+        detector = AnomalyDetector(method="zscore")
+        detector.fit(history)
+        result = detector.detect(reading)
+    except Exception as e:
+        logger.exception("Anomaly detection failed")
+        return jsonify({"error": f"Anomaly detection failed: {e}"}), 500
 
     return jsonify({
         "is_anomaly": result.is_anomaly,
@@ -296,6 +375,14 @@ def maintenance_anomaly():
 @analytics_bp.route("/dashboard", methods=["GET"])
 def analytics_dashboard():
     """Get combined analytics dashboard data."""
+    try:
+        return _build_dashboard_response()
+    except Exception as e:
+        logger.exception("Dashboard data generation failed")
+        return jsonify({"error": f"Dashboard failed: {e}"}), 500
+
+
+def _build_dashboard_response():
     analyzer = _get_energy_analyzer()
     tracker = _get_cost_tracker()
 
