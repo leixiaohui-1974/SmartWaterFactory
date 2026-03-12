@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartWaterFactory Analytics Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .kpi-card { transition: transform 0.15s; }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .rating-excellent { color: #10b981; }
+    .rating-good { color: #3b82f6; }
+    .rating-average { color: #f59e0b; }
+    .rating-poor { color: #ef4444; }
+    .priority-urgent { background: #fef2f2; border-color: #fca5a5; }
+    .priority-high { background: #fff7ed; border-color: #fdba74; }
+    .priority-medium { background: #fefce8; border-color: #fde047; }
+    .priority-low { background: #f0fdf4; border-color: #86efac; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div>
+        <h1 class="text-lg font-bold text-slate-800">SmartWaterFactory <span class="text-blue-500">Analytics</span></h1>
+        <p class="text-xs text-slate-500">ML Prediction | Energy Analysis | Cost Optimization | Predictive Maintenance</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="status-badge" class="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Online</span>
+        <span id="last-update" class="text-xs text-slate-400"></span>
+        <button onclick="loadDashboard()" class="px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600">Refresh</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Energy KPI Cards -->
+    <section class="mb-6">
+      <h2 class="text-sm font-bold text-slate-600 uppercase tracking-wide mb-3">Energy Performance</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3" id="energy-kpis"></div>
+    </section>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <!-- Energy Benchmark -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">Energy Benchmark</h3>
+        <div id="benchmark-list" class="space-y-3"></div>
+      </div>
+
+      <!-- Peak/Valley Distribution -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">Peak/Valley Distribution</h3>
+        <canvas id="peakValleyChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Cost + Savings Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+      <!-- Cost Summary -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">Cost Summary</h3>
+        <div id="cost-summary" class="space-y-2"></div>
+      </div>
+
+      <!-- Energy Savings -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">Load Shifting Savings</h3>
+        <div id="savings-info" class="space-y-2"></div>
+      </div>
+
+      <!-- ML Prediction -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-700 mb-3">ML Time Series Forecast</h3>
+        <canvas id="forecastChart" height="200"></canvas>
+        <button onclick="runForecast()" class="mt-2 px-3 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-600 w-full">Run Forecast</button>
+      </div>
+    </div>
+
+    <!-- Maintenance Section -->
+    <section class="mb-6">
+      <h2 class="text-sm font-bold text-slate-600 uppercase tracking-wide mb-3">Predictive Maintenance</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-4" id="maint-kpis"></div>
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <table class="w-full text-xs">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="px-4 py-2 text-left font-medium text-slate-600">Equipment</th>
+              <th class="px-4 py-2 text-left font-medium text-slate-600">Priority</th>
+              <th class="px-4 py-2 text-left font-medium text-slate-600">Health</th>
+              <th class="px-4 py-2 text-left font-medium text-slate-600">RUL (hours)</th>
+              <th class="px-4 py-2 text-left font-medium text-slate-600">Action</th>
+              <th class="px-4 py-2 text-right font-medium text-slate-600">Cost (CNY)</th>
+            </tr>
+          </thead>
+          <tbody id="maint-table"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:5000/api/analytics';
+    let peakValleyChart = null;
+    let forecastChart = null;
+
+    async function fetchJSON(url, opts = {}) {
+      try {
+        const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } catch (e) {
+        console.error('API error:', url, e);
+        return null;
+      }
+    }
+
+    // ---------- Energy KPIs ----------
+    function renderEnergyKPIs(kpis) {
+      const items = [
+        { label: 'Total Energy', value: `${kpis.total_energy_kwh} kWh`, color: 'blue' },
+        { label: 'Specific Energy', value: `${kpis.specific_energy_kwh_per_m3} kWh/m\u00B3`, color: 'indigo' },
+        { label: 'Peak Power', value: `${kpis.peak_power_kw} kW`, color: 'amber' },
+        { label: 'Avg Power', value: `${kpis.average_power_kw} kW`, color: 'emerald' },
+        { label: 'Load Factor', value: `${(kpis.load_factor * 100).toFixed(1)}%`, color: 'purple' },
+        { label: 'Aeration %', value: `${kpis.aeration_fraction_pct}%`, color: 'rose' },
+      ];
+      document.getElementById('energy-kpis').innerHTML = items.map(i => `
+        <div class="kpi-card bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
+          <div class="text-[10px] text-slate-500 uppercase">${i.label}</div>
+          <div class="text-lg font-bold text-${i.color}-600 mt-1">${i.value}</div>
+        </div>
+      `).join('');
+    }
+
+    // ---------- Benchmark ----------
+    function renderBenchmarks(benchmarks) {
+      document.getElementById('benchmark-list').innerHTML = benchmarks.map(b => {
+        const pct = b.value / (b.industry_avg * 2) * 100;
+        const barColor = { excellent: 'bg-emerald-500', good: 'bg-blue-500', average: 'bg-amber-500', poor: 'bg-red-500' }[b.rating];
+        return `
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-medium">${b.metric}</span>
+              <span class="rating-${b.rating} font-bold">${b.value} ${b.unit} (${b.rating})</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full ${barColor} rounded-full" style="width: ${Math.min(pct, 100)}%"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+              <span>Best: ${b.industry_avg}</span>
+              <span>Industry Avg: ${b.industry_avg}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ---------- Peak/Valley Chart ----------
+    function renderPeakValley(data) {
+      const ctx = document.getElementById('peakValleyChart').getContext('2d');
+      if (peakValleyChart) peakValleyChart.destroy();
+      peakValleyChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: [`Peak (${data.peak_pct}%)`, `Flat (${data.flat_pct}%)`, `Valley (${data.valley_pct}%)`],
+          datasets: [{
+            data: [data.peak_kwh, data.flat_kwh, data.valley_kwh],
+            backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+            borderWidth: 2, borderColor: '#fff',
+          }],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 11 } } },
+            tooltip: { callbacks: { label: (c) => `${c.label}: ${c.raw} kWh` } },
+          },
+        },
+      });
+    }
+
+    // ---------- Cost Summary ----------
+    function renderCost(cost) {
+      if (!cost) { document.getElementById('cost-summary').innerHTML = '<p class="text-slate-400 text-xs">No cost data</p>'; return; }
+      const items = Object.entries(cost).filter(([k]) => typeof cost[k] === 'number').slice(0, 8);
+      document.getElementById('cost-summary').innerHTML = items.map(([k, v]) => `
+        <div class="flex justify-between text-xs">
+          <span class="text-slate-600">${k.replace(/_/g, ' ')}</span>
+          <span class="font-mono font-medium">${typeof v === 'number' ? v.toLocaleString() : v}</span>
+        </div>
+      `).join('');
+    }
+
+    // ---------- Savings ----------
+    function renderSavings(data) {
+      if (!data) return;
+      document.getElementById('savings-info').innerHTML = `
+        <div class="flex justify-between text-xs"><span>Current Cost</span><span class="font-mono font-bold text-slate-700">\u00A5${data.current_cost_yuan}</span></div>
+        <div class="flex justify-between text-xs"><span>Optimized Cost</span><span class="font-mono font-bold text-emerald-600">\u00A5${data.optimized_cost_yuan}</span></div>
+        <div class="flex justify-between text-xs"><span>Savings</span><span class="font-mono font-bold text-blue-600">\u00A5${data.savings_yuan} (${data.savings_percent}%)</span></div>
+        <div class="flex justify-between text-xs"><span>Peak Shiftable</span><span class="font-mono">${data.peak_shiftable_kwh} kWh</span></div>
+        <div class="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-emerald-500 rounded-full" style="width: ${data.savings_percent}%"></div>
+        </div>
+        <div class="text-[10px] text-slate-400 text-center">Potential savings: ${data.savings_percent}%</div>
+      `;
+    }
+
+    // ---------- Maintenance ----------
+    function renderMaintenance(maint) {
+      // KPI cards
+      const counts = maint.priority_counts;
+      document.getElementById('maint-kpis').innerHTML = `
+        <div class="kpi-card bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
+          <div class="text-[10px] text-slate-500 uppercase">Avg Health</div>
+          <div class="text-lg font-bold text-blue-600">${maint.average_health_score}</div>
+        </div>
+        <div class="kpi-card bg-red-50 rounded-lg border border-red-200 p-3 shadow-sm">
+          <div class="text-[10px] text-red-500 uppercase">Urgent</div>
+          <div class="text-lg font-bold text-red-600">${counts.urgent}</div>
+        </div>
+        <div class="kpi-card bg-amber-50 rounded-lg border border-amber-200 p-3 shadow-sm">
+          <div class="text-[10px] text-amber-500 uppercase">High</div>
+          <div class="text-lg font-bold text-amber-600">${counts.high}</div>
+        </div>
+        <div class="kpi-card bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
+          <div class="text-[10px] text-slate-500 uppercase">Est. Cost</div>
+          <div class="text-lg font-bold text-slate-700">\u00A5${maint.total_estimated_cost_yuan.toLocaleString()}</div>
+        </div>
+      `;
+
+      // Table
+      document.getElementById('maint-table').innerHTML = maint.plans.map(p => {
+        const healthBar = p.health_score > 70 ? 'bg-emerald-500' : p.health_score > 40 ? 'bg-amber-500' : 'bg-red-500';
+        return `
+          <tr class="border-b border-slate-100 priority-${p.priority}">
+            <td class="px-4 py-2 font-medium">${p.name} <span class="text-slate-400">(${p.equipment_id})</span></td>
+            <td class="px-4 py-2">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium
+                ${p.priority === 'urgent' ? 'bg-red-100 text-red-700' :
+                  p.priority === 'high' ? 'bg-amber-100 text-amber-700' :
+                  p.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-emerald-100 text-emerald-700'}">${p.priority}</span>
+            </td>
+            <td class="px-4 py-2">
+              <div class="flex items-center gap-2">
+                <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full ${healthBar} rounded-full" style="width: ${p.health_score}%"></div>
+                </div>
+                <span>${p.health_score}</span>
+              </div>
+            </td>
+            <td class="px-4 py-2 font-mono">${p.rul_hours.toLocaleString()}</td>
+            <td class="px-4 py-2">${p.action}</td>
+            <td class="px-4 py-2 text-right font-mono">\u00A5${p.cost_yuan.toLocaleString()}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ---------- Forecast ----------
+    async function runForecast() {
+      // Generate demo turbidity data
+      const data = Array.from({ length: 48 }, (_, i) => 3.0 + 1.5 * Math.sin(i / 6) + (Math.random() - 0.5) * 0.5);
+      const result = await fetchJSON(`${API_BASE}/predict/timeseries`, {
+        method: 'POST', body: JSON.stringify({ data, horizon: 12, method: 'ensemble' }),
+      });
+
+      if (!result) {
+        // Fallback: simple local forecast
+        renderForecastChart(data, data.slice(-12).map((v, i) => v + 0.1 * i), null, null);
+        return;
+      }
+      renderForecastChart(data, result.values, result.lower_bound, result.upper_bound);
+    }
+
+    function renderForecastChart(history, forecast, lower, upper) {
+      const ctx = document.getElementById('forecastChart').getContext('2d');
+      if (forecastChart) forecastChart.destroy();
+
+      const labels = Array.from({ length: history.length + forecast.length }, (_, i) => i);
+      const histData = history.map((v, i) => ({ x: i, y: v }));
+      const foreData = forecast.map((v, i) => ({ x: history.length + i, y: v }));
+
+      const datasets = [
+        { label: 'History', data: histData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, pointRadius: 0, tension: 0.3 },
+        { label: 'Forecast', data: foreData, borderColor: '#10b981', borderDash: [5, 3], pointRadius: 2, tension: 0.3 },
+      ];
+
+      if (lower && upper) {
+        datasets.push({
+          label: 'Confidence', data: forecast.map((_, i) => ({ x: history.length + i, y: upper[i] })),
+          borderColor: 'transparent', backgroundColor: 'rgba(16,185,129,0.1)', fill: '+1', pointRadius: 0,
+        });
+        datasets.push({
+          label: '', data: forecast.map((_, i) => ({ x: history.length + i, y: lower[i] })),
+          borderColor: 'transparent', backgroundColor: 'transparent', pointRadius: 0,
+        });
+      }
+
+      forecastChart = new Chart(ctx, {
+        type: 'line', data: { labels, datasets },
+        options: {
+          responsive: true,
+          scales: { x: { display: true, title: { display: true, text: 'Time Step', font: { size: 10 } } },
+                    y: { title: { display: true, text: 'NTU', font: { size: 10 } } } },
+          plugins: { legend: { labels: { font: { size: 10 } } } },
+        },
+      });
+    }
+
+    // ---------- Load Dashboard ----------
+    async function loadDashboard() {
+      document.getElementById('status-badge').textContent = 'Loading...';
+      document.getElementById('status-badge').className = 'px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700';
+
+      const data = await fetchJSON(`${API_BASE}/dashboard`);
+
+      if (data) {
+        renderEnergyKPIs(data.energy.kpis);
+        renderBenchmarks(data.energy.benchmarks);
+        renderPeakValley(data.energy.peak_valley);
+        renderSavings(data.energy.savings);
+        renderCost(data.cost);
+        renderMaintenance(data.maintenance);
+        document.getElementById('status-badge').textContent = 'Online';
+        document.getElementById('status-badge').className = 'px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700';
+      } else {
+        // Demo mode — render with static data
+        renderDemoData();
+        document.getElementById('status-badge').textContent = 'Demo Mode';
+        document.getElementById('status-badge').className = 'px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700';
+      }
+
+      document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+      runForecast();
+    }
+
+    function renderDemoData() {
+      renderEnergyKPIs({ total_energy_kwh: 2040, specific_energy_kwh_per_m3: 0.408, peak_power_kw: 103, average_power_kw: 85, load_factor: 0.825, aeration_fraction_pct: 55.9 });
+      renderBenchmarks([
+        { metric: 'Unit Energy', value: 0.408, unit: 'kWh/m\u00B3', rating: 'good', industry_avg: 0.5, industry_best: 0.25 },
+        { metric: 'Load Factor', value: 0.825, unit: '', rating: 'good', industry_avg: 0.7, industry_best: 0.9 },
+        { metric: 'Aeration %', value: 55.9, unit: '%', rating: 'average', industry_avg: 55, industry_best: 40 },
+      ]);
+      renderPeakValley({ peak_kwh: 680, flat_kwh: 510, valley_kwh: 850, peak_pct: 33.3, flat_pct: 25.0, valley_pct: 41.7 });
+      renderSavings({ current_cost_yuan: 1285.2, optimized_cost_yuan: 1178.4, savings_yuan: 106.8, savings_percent: 8.3, peak_shiftable_kwh: 102, total_shiftable_kwh: 306 });
+      renderCost({ total_energy_cost: 1285.2, total_chemical_cost: 450, total_cost: 1735.2, cost_per_m3: 0.347 });
+      renderMaintenance({
+        average_health_score: 58.2, equipment_count: 4,
+        priority_counts: { urgent: 1, high: 1, medium: 1, low: 1 },
+        total_estimated_cost_yuan: 41500,
+        plans: [
+          { equipment_id: 'PMP-003', name: '\u56DE\u6D41\u6CF5', priority: 'urgent', health_score: 28.5, rul_hours: 120, action: '\u505C\u673A\u68C0\u4FEE', cost_yuan: 30000 },
+          { equipment_id: 'PMP-001', name: '\u66DD\u6C14\u9F13\u98CE\u673AA', priority: 'high', health_score: 45.2, rul_hours: 1850, action: '\u5B89\u6392\u8BA1\u5212\u6027\u5927\u4FEE', cost_yuan: 8000 },
+          { equipment_id: 'MIX-001', name: '\u6405\u62CC\u5668', priority: 'medium', health_score: 62.0, rul_hours: 3200, action: '\u4E0B\u6B21\u505C\u673A\u7A97\u53E3\u68C0\u67E5', cost_yuan: 3000 },
+          { equipment_id: 'PMP-002', name: '\u66DD\u6C14\u9F13\u98CE\u673AB', priority: 'low', health_score: 82.5, rul_hours: 12000, action: '\u7EB3\u5165\u5DE1\u68C0\u8BA1\u5212', cost_yuan: 500 },
+        ],
+      });
+    }
+
+    // Initial load
+    loadDashboard();
+  </script>
+</body>
+</html>

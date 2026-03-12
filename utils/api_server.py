@@ -394,7 +394,14 @@ class WaterPlantAPIServer:
         
         # 注册路由
         self._register_routes()
-        
+
+        # 注册 analytics 蓝图（ML/Energy/Cost/Maintenance）
+        try:
+            from utils.analytics_api import analytics_bp
+            self.app.register_blueprint(analytics_bp)
+        except Exception:
+            pass  # analytics module optional
+
         # 注册WebSocket事件
         if self.socketio:
             self._register_websocket_events()
